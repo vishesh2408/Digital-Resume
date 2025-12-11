@@ -1,0 +1,25 @@
+/* Template 3 - Two-column professional (sidebar + main) */
+@page { size: A4; margin: 12mm; }
+body { font-family: 'Poppins', 'Helvetica', Arial, sans-serif; color:#111827; background: #ffffff; }
+.container { width:210mm; min-height:297mm; margin:0 auto; padding:14mm; box-sizing:border-box; }
+.header { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+.profile-image { width:88px; height:88px; border-radius:50%; object-fit:cover; }
+.initials-box { width:88px; height:88px; border-radius:50%; background:#EEF2FF; color:#4338CA; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; }
+.header-info h1 { margin:0; font-size:20px; color:#0f172a; }
+.header-info p { margin:0; color:#4b5563; font-size:11px; }
+.main-layout { display:flex; gap:18px; }
+.sidebar { width:28%; background:#F8FAFF; padding:10px; border-radius:6px; }
+.main-content { width:72%; }
+.section { margin-bottom:10px; }
+.section-title { font-weight:700; color:#111827; margin-bottom:6px; border-bottom:2px solid #6366F1; padding-bottom:4px; }
+.prose { font-size:13px; line-height:1.45; color:#111827; }
+.prose ul { margin:0; padding-left:18px; }
+@media print { .container { padding:8mm; } }
+
+/* PDF / print helpers (template1-alike) */
+@page { size: A4; margin: 8mm; }
+html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+.container { box-sizing: border-box; }
+@media print {
+	.container { padding: 8mm !important; }
+}

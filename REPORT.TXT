@@ -1,0 +1,148 @@
+1. INTRODUCTION
+
+1.1 PURPOSE
+This report provides a complete and descriptive overview of the "MyResume" Django web application contained in this workspace. It is written for project stakeholders, maintainers, and any developer who will extend or operate the application. The document explains the product goals, operational context, functional and non-functional requirements, interfaces, constraints, and recommended deployment and testing steps. Each section includes concise explanations, acceptance criteria where useful, and practical notes so readers can both understand the design intent and apply it.
+
+1.2 SCOPE
+The MyResume application allows authenticated users to assemble, preview, customize, and export resumes. Key capabilities include creating and maintaining resume data (profile, skills, projects, education, certifications), previewing the resume in several visual templates, selecting a preferred template, and exporting a print-ready PDF for distribution. The scope of this report covers: data model level behavior; each template's role and CSS considerations for browser and PDF; server-side PDF generation using WeasyPrint; client-side UX considerations (loaders, navigation behavior); and operational concerns such as deployment, database selection, and static asset handling.
+
+1.3 DEFINITIONS, ACRONYMS, AND ABBREVIATIONS
+- PDF — Portable Document Format: the binary format used for printable resume exports.
+- UI — User Interface: the visual and interactive elements presented to users through a web browser.
+- CSS — Cascading Style Sheets: styling language used to present HTML content visually.
+- HTML — HyperText Markup Language: the markup language used to create web pages and templates.
+- Django — Python web framework used to implement server-side routing, templating and the ORM in this project.
+- WeasyPrint — A Python library that converts HTML/CSS to PDF documents server-side.
+- bfcache — Back/Forward Cache: a browser feature that can retain page DOM state when the user navigates back or forward.
+- A4 — Paper size standard (210 × 297 mm) used as the default PDF page size in templates.
+
+1.4 OVERVIEW
+This application is built as a Django server-rendered site: users edit structured resume data in forms; the data is stored in a Django ORM model; templates render HTML previews; the server can produce PDF outputs by rendering the same templates with print-focused CSS and passing them to WeasyPrint. Templates are intentionally designed so each template has a corresponding stylesheet (for browser preview and PDF export). Client-side scripts are minimal and aim to improve UX (for example, show a loader when starting a PDF download). The report explains how templates, styles and server-side PDF generation intersect and what must be preserved to ensure consistent outputs.
+
+
+2. GENERAL DESCRIPTION
+
+2.1 PRODUCT PERSPECTIVE
+The product is a focused web application for creating and exporting resumes. It fits the following architectural viewpoints:
+- Server-side rendering (Django): HTML pages are produced using Django templates and context data. This simplifies PDF generation because the same rendering logic can be reused for both browser and PDF outputs.
+- Static asset pipeline: CSS files are placed under `app/static/css`. The PDF export view locates these stylesheets at runtime using Django staticfiles finders and supplies them to WeasyPrint so the PDF visually matches the browser preview.
+- PDF generation: `export_pdf_view` renders a template to an HTML string and then calls WeasyPrint's HTML.write_pdf method while passing the discovered CSS files.
+- Authentication/authorization: Django decorators protect resume views so users see and export only their own resumes.
+
+2.2 PRODUCT FUNCTIONS
+This section enumerates the primary functions and explains how they appear in the UI and codebase:
+- User account and authentication: Users must sign in to create and manage resumes; endpoints are decorated with `@login_required` to enforce this.
+- Resume CRUD: Users can create, read, update and delete resume resources via the resume form and list pages. The forms map onto ORM models stored in the database (development uses SQLite; production should use a server-grade RDBMS).
+- Template preview and selection: Users may preview any of the available templates and choose the one used when exporting the PDF. The template selection UI links to `resume_template_select_view` which renders available templates for the resume.
+- PDF export: The `export_pdf_view` accepts `pk` and `template_name`, renders the chosen template to an HTML string (with a `render_summary` pre-processed to handle escaped HTML safely), locates CSS files (`css/tailwind.css`, `css/pdf.css`, and `css/{template_name}.css`), and invokes WeasyPrint to generate a PDF file for download.
+- ATS analysis (optional feature): A separate view accepts job description uploads and compares them with resume content to produce suggestions.
+
+2.3 USER CHARACTERISTICS
+The typical user profile includes:
+- Individual jobseekers who want a quick, customizable resume builder and PDF exporter.
+- Users familiar with basic web forms and file download patterns.
+No specialized technical skill is required; advanced users may customize template data and links.
+
+2.4 GENERAL CONSTRAINTS
+This section explains constraints that shape design decisions and implementation trade-offs:
+- PDF rendering is server-side; therefore, any CSS used must be available to the server at PDF generation time. Reliance on client-side frameworks that require a build step (e.g., Tailwind) must either be precompiled to `static/css/tailwind.css` or replaced with semantic template CSS.
+- WeasyPrint provides strong CSS support but does not perfectly match modern browser rendering. Avoid experimental layout techniques (CSS Grid features that WeasyPrint doesn't support fully) for print-critical sections.
+- Performance: PDF generation consumes CPU and memory — the host must be sized appropriately, and long-running generation tasks should be throttled or offloaded if high concurrency is expected.
+- Data store: Development uses SQLite which is file-based and not suitable for high-concurrency production use; MySQL or PostgreSQL is recommended for production.
+
+2.5 ASSUMPTIONS AND DEPENDENCIES
+Assumptions necessary for correct operation include:
+- Python runtime with required libraries installed (Django, WeasyPrint, Pillow, any DB driver such as `mysqlclient`). The workspace includes `myenv` as a development virtual environment.
+- Static files are discoverable by Django's staticfiles finders when the server runs in the environment used for PDF generation (this may be the same host or a separate worker process).
+- The server environment supports writing temporary files and executing WeasyPrint (font handling, file system, memory availability).
+
+
+3. SPECIFIC REQUIREMENTS
+
+3.1 EXTERNAL INTERFACE REQUIREMENTS
+
+3.1.1 User Interfaces
+Detailed expectations for the UI, both functional and visual:
+- Resume form: A single-page form (or multi-section form) where users enter personal details, multiple skill entries, project entries, education, and certifications. Validation must ensure required fields (e.g., full name, email) are present before saving.
+- Template selector: Lists available templates (template1..template6) with thumbnails or small previews. Each list item includes a "View" action to open the template in a preview and a "Download" action which triggers the `export_pdf_view`.
+  - Acceptance criteria: Clicking "Download" begins the PDF generation and returns a downloadable PDF file; the UI shows a loader while the download initiates and clears the loader reliably after completion or when navigating back.
+- Preview pages: Each template preview must render the resume data using `render_summary` fallbacks, lists for `skill_items`, `project_items`, `certification_items`, and `education_items`.
+
+3.1.2 Hardware Interfaces
+- The application does not integrate with specialized hardware. System requirements are limited to a server capable of running Python, writing temporary files, and holding sufficient RAM/CPU to run WeasyPrint.
+
+3.1.3 Software Interfaces
+- Django views and templates for server-side rendering.
+- WeasyPrint for HTML/CSS to PDF conversion; the view uses HTML(string=..., base_url=...) and write_pdf(..., stylesheets=...).
+- Staticfiles finders to locate stylesheet files at runtime. Example: `finders.find('css/template2.css')` returns the absolute path provided the file exists in static dirs.
+
+3.1.4 Communications Interfaces
+- HTTP/HTTPS for browser clients. If behind a reverse proxy or load balancer, ensure base_url and static file resolution in PDF generation account for the public URL used by clients (the view sets `base_url=request.build_absolute_uri('/')` for WeasyPrint).
+
+3.2 FUNCTIONAL REQUIREMENTS (Detailed)
+Below are the primary functional requirements (FR) with more detailed acceptance criteria and implementation notes:
+- FR1 — Resume CRUD: Users must be able to create, edit, and delete a resume. Acceptance: form validation prevents blank required fields; saved records are persisted in the DB and visible in the user's resume list.
+- FR2 — Templates: The system must expose multiple templates for preview and selection; templates should use the same data model and render the same sections (summary, skills, projects, certifications, education) to avoid missing data in any template.
+- FR3 — PDF export: When a user requests a PDF for a specific template, the server must include `css/{template_name}.css` and `css/pdf.css` (and optionally `css/tailwind.css`) in WeasyPrint's stylesheets list. Acceptance: the downloaded PDF should reflect the template's styling for typography, colors (print-safe), margins and page break rules.
+- FR4 — Loader UX: The UI should show a loader while the server prepares the PDF and must ensure the loader isn't left visible after navigation (pageshow/visibilitychange handlers added to templates to clear loader state). Acceptance: after returning to the template selection or refreshing, no spinner should remain visible.
+- FR5 — Authorization: Only authenticated owners may preview, edit, or export a resume. Acceptance: server denies access with 403 or redirects to login for non-owners.
+
+3.3 NON-FUNCTIONAL REQUIREMENTS (Detailed)
+- NFR1 — Page sizing and margins: PDFs should use A4 size and default margins set in template CSS via `@page { size: A4; margin: XXmm; }`. Acceptance: generated PDFs should report A4 page size and consistent margins during visual inspection.
+- NFR2 — Performance: A typical resume export (one- to three-page document) should complete within a few seconds on reasonable hardware. If exports are slow, consider queuing PDF generation or using worker processes.
+- NFR3 — Visual parity: PDFs should closely match browser previews; differences due to WeasyPrint limitations are acceptable but should be minimized.
+- NFR4 — Security: Enforce authentication (login) and authorization (resume ownership). Sanitize any HTML stored in resume fields and only mark safe where intentionally allowed (the code uses `mark_safe` carefully when decoding stored summaries).
+
+3.4 DESIGN CONSTRAINTS
+- Keep template CSS straightforward and print-focused: use fixed measurements (mm, px, pt) where appropriate, and avoid CSS features not well-supported by WeasyPrint.
+- Prefer semantic class names for templates (example: `.resume-header`, `.section`, `.section-title`) so template-specific CSS can be compact and maintainable.
+- If Tailwind or other utility frameworks are used in templates, the project must include a compiled `css/tailwind.css` that WeasyPrint can read. Alternatively, convert templates to semantic CSS to remove the build dependency.
+
+3.5 DJANGO AND MYSQL FEATURES (Detailed)
+Django-specific notes and how to operate with MySQL in production:
+- Django features in use:
+  - Templating: Jinja-like Django templates for server-side rendering.
+  - Views: Function-based views such as `resume_detail_view`, `resume_template_select_view`, and `export_pdf_view` implement core flows.
+  - Staticfiles: `django.contrib.staticfiles` is used together with `finders.find()` to locate CSS for WeasyPrint.
+  - Models & ORM: The code uses standard Django models; migrations are applied using `manage.py migrate`.
+- Migrating from SQLite to MySQL in production:
+  - Update `settings.DATABASES` to point to `django.db.backends.mysql` with proper credentials and host/port.
+  - Install a MySQL driver in the virtual environment (`pip install mysqlclient` or `mysql-connector-python`) and test connections locally.
+  - Dump and load data carefully: use `manage.py dumpdata` and `manage.py loaddata` or tools like `mysqldump` plus ETL steps if needed.
+  - Configure connection pooling or set `CONN_MAX_AGE` in Django settings for persistent connections.
+  - Ensure the database charset (utf8mb4) is configured to avoid truncation of Unicode content.
+
+
+4. APPENDIX (DEPLOYMENT, TESTING & OPERATIONS)
+
+4.1 Local development and quick checks
+- Activate virtual environment and install requirements (if not already present):
+  - `myenv\Scripts\Activate.ps1` (PowerShell) or `source myenv/bin/activate` (Unix)
+  - `pip install -r requirements.txt` (if a requirements file exists)
+- Run the dev server for manual checks:
+  ```powershell
+  python manage.py runserver
+  ```
+  Then open the resume preview and template selector in the browser.
+
+4.2 PDF export verification
+- Generate a PDF using UI "Download" for each template. Confirm the following:
+  - PDF file downloads successfully and page count is reasonable.
+  - Template-specific styles (fonts, header color, section separators) are reflected in the PDF.
+  - Margins and page breaks are correct.
+
+4.3 Troubleshooting tips
+- Missing CSS in PDF: ensure the stylesheet exists under `app/static/css/{template}.css` and `finders.find()` returns a valid path. Check Django `STATICFILES_DIRS` and `STATIC_ROOT` settings.
+- Fonts not rendering: ensure required fonts are installed on the server or referenced as local `@font-face` resources accessible to WeasyPrint.
+- Slow PDF generation: profile memory/CPU while generating PDFs; for heavy usage consider queuing the export job to a background worker.
+
+4.4 Testing and CI suggestions
+- Add automated integration tests that call `export_pdf_view` for a small set of templates and assert that the response content-type is `application/pdf` and the response body size is non-zero.
+- In CI, either install WeasyPrint dependencies or mock PDF generation if installing system-level dependencies is not desirable. Alternatively, run a lightweight smoke test that ensures the view renders HTML without errors.
+
+4.5 Security and privacy
+- Ensure resumes are only accessible to authenticated owners and that file uploads (if any) are sanitized and scanned.
+- If storing exports temporarily, use secure temporary directories and purge old files periodically.
+
+
+End of descriptive report.

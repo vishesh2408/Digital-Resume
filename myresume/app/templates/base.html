@@ -1,14 +1,21 @@
+
+
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+  {% load static %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resume Builder - {% block title %}Home{% endblock %}</title>
 
-  <!-- Tailwind CSS -->
+ 
+  <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+
+
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts & Icons -->
+
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,34 +23,60 @@
 
   <style>
     body { font-family: 'Inter', sans-serif; }
+
+    @media print {
+      body {
+        margin: 0 !important;
+        background: white !important;
+      }
+
+      nav, footer {
+        display: none !important;
+      }
+
+      .max-w-4xl {
+        margin: 0 auto !important;
+        box-shadow: none !important;
+      }
+    }
   </style>
 </head>
 
-<body class="h-full flex flex-col bg-teal-50">
+<body class="h-full flex flex-col bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
 
-  <!-- Navbar -->
-  <nav class="bg-teal-500 shadow-sm p-4 sticky top-0 z-50">
+  {% if not hide_header_footer %}
+  
+  <nav class="bg-transparent sticky top-0 z-50 p-4">
     <div class="container mx-auto flex justify-between items-center">
-      <a href="{% url 'app:resume_list' %}" class="text-xl font-bold text-gray-800">Resume Builder</a>
+      <a href="{% url 'app:resume_list' %}" class="text-xl font-bold text-white flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 10.2L7 17l9-2-6-3.8z"></path><path d="M12.9 6.8L16 2.5l-9 2 6 3.8z"></path><path d="M14.7 13.9L17 21l-9-2 6-3.8z"></path></svg>
+        MyResume
+      </a>
       <div class="space-x-4">
         {% if user.is_authenticated %}
-          <span class="text-gray-600">Hello, {{ user.username }}!</span>
-          <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">Logout</a>
+          <span class="text-white/90">Hello, {{ user.username }}!</span>
+          <a href="{% url 'app:ats_analysis' %}" class="px-4 py-2 bg-white/10 text-white rounded-lg border border-white/20">ATS Analysis</a>
+          <form method="post" action="{% url 'logout' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md">Logout</button>
+          </form>
         {% else %}
-          <a href="{% url 'login' %}" class="px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100 transition-colors">Login</a>
-          <a href="{% url 'app:signup' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">Sign Up</a>
+          <a href="{% url 'login' %}" class="px-4 py-2 text-white/90 rounded-md hover:bg-white/5 transition-colors">Login</a>
+          <a href="{% url 'app:signup' %}" class="px-4 py-2 bg-white/10 text-white rounded-md border border-white/20">Sign Up</a>
         {% endif %}
       </div>
     </div>
   </nav>
+  {% endif %}
 
   <!-- Main Content -->
-  <main class="flex-grow p-8">
-    <div class="container mx-auto">
+  <main class="flex-grow {% if not hide_header_footer %}p-8{% endif %}">
+    
       {% block content %}{% endblock %}
-    </div>
+   
   </main>
 
+  {% if not hide_header_footer %}
   <!-- Footer -->
   <footer class="bg-gray-900 text-white py-12">
     <div class="max-w-6xl mx-auto px-4">
@@ -51,7 +84,7 @@
 
         <!-- Brand Info -->
         <div class="lg:col-span-1">
-          <h2 class="text-2xl font-bold text-blue-400 mb-4">Resume Builder</h2>
+          <h2 class="text-2xl font-bold  text-white mb-4">Digital Resume Builder</h2>
           <p class="text-gray-300 mb-4 leading-relaxed">
             Your partner in crafting professional resumes and showcasing your skills with customizable templates and export options.
           </p>
@@ -88,19 +121,28 @@
         <div>
           <h3 class="text-lg font-semibold mb-4">Connect</h3>
           <div class="flex space-x-4">
-            {% for icon in social_icons %}
-              <a href="#" title="{{ icon|capfirst }}" class="bg-gray-800 hover:bg-blue-600 p-3 rounded-full transition">
-                <i class="fab fa-{{ icon }} text-white text-lg"></i>
-              </a>
-            {% endfor %}
-          </div>
+              {% if social_icons %}
+                {% for icon in social_icons %}
+                  <a href="#" title="{{ icon|capfirst }}" class="bg-gray-800 hover:bg-blue-600 p-3 rounded-full transition">
+                    <i class="fab fa-{{ icon }} text-white text-lg"></i>
+                  </a>
+                {% endfor %}
+              {% else %}
+                <!-- Fallback icons if social_icons is not provided by the view -->
+                <a href="#" title="Facebook" class="bg-gray-800 hover:bg-blue-600 p-3 rounded-full transition"><i class="fab fa-facebook text-white text-lg"></i></a>
+                <a href="#" title="Instagram" class="bg-gray-800 hover:bg-pink-500 p-3 rounded-full transition"><i class="fab fa-instagram text-white text-lg"></i></a>
+                <a href="https://linkedin.com/in/vishesh-yadav-" title="LinkedIn" class="bg-gray-800 hover:bg-blue-700 p-3 rounded-full transition"><i class="fab fa-linkedin text-white text-lg"></i></a>
+                <a href="#" title="GitHub" class="bg-gray-800 hover:bg-gray-700 p-3 rounded-full transition"><i class="fab fa-github text-white text-lg"></i></a>
+                <a href="#" title="YouTube" class="bg-gray-800 hover:bg-red-600 p-3 rounded-full transition"><i class="fab fa-youtube text-white text-lg"></i></a>
+              {% endif %}
+            </div>
         </div>
       </div>
 
       <!-- Footer Bottom -->
       <div class="border-t border-gray-700 mt-8 pt-8 text-center">
         <p class="text-gray-300 flex items-center justify-center">
-          &copy; {{ now.year }} Resume Builder. All Rights Reserved. Designed with
+          &copy; {{ now.year }} Digital Resume. All Rights Reserved. Designed with
           <svg class="w-4 h-4 mx-1 text-red-500 fill-current" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
                      4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 
@@ -111,6 +153,7 @@
       </div>
     </div>
   </footer>
+  {% endif %}
 
 </body>
 </html>

@@ -1,0 +1,184 @@
+Project report for 'myresume' workspace
+Generated: 2025-11-03
+
+This document lists all changes I made, the files added and edited, how the AI analyzer and Django integration work, how to run and test locally, data shapes and API contract, troubleshooting tips, and recommended next steps for production hardening and improvements.
+
+1) Summary of work performed
+- Reworked the ATS analysis page template to provide a modern, card-based UI for uploading a resume and supplying a job description (JD).
+- Integrated Chart.js charts into `app/templates/resume/ats_analysis.html` driven by server/AI analysis JSON. Charts include bar, doughnut, radar and JD comparison charts.
+- Implemented client-side JavaScript to: handle drag-and-drop upload, generate sample JD, intercept form submission, call a local AI microservice, animate UI elements, and update charts dynamically.
+- Implemented a prototype AI microservice using FastAPI and scikit-learn that accepts resume files and a job description and returns:
+  - keyword_match_pct: percentage of JD keywords found in resume
+  - tfidf_similarity_pct: TF-IDF cosine similarity between resume and JD
+  - combined_score_pct: weighted combination of keyword match and tfidf similarity
+  - jd_keywords: list of top keywords extracted from JD
+  - matched_keywords: list of JD keywords present in resume
+  - missing_keywords: list of JD keywords not found in resume
+- Fixed a Django template syntax error (incorrect `default(0)` filter usage) and replaced it with `|default:"0"`.
+
+2) Files added
+- ai_service/requirements.txt
+  Purpose: lists Python dependencies to run the FastAPI analyzer.
+  Key packages: fastapi, uvicorn, scikit-learn, python-docx, pdfminer.six, pydantic
+
+- ai_service/main.py
+  Purpose: FastAPI app that provides the `/analyze` POST endpoint. Responsibilities:
+    - Accept multipart/form-data with fields `upload` (file) and `job_description` (string).
+    - Extract text from `.docx` (python-docx) and `.pdf` (pdfminer.six). Falls back to simple decode for `.txt`.
+    - Tokenize text and remove stopwords for keyword matching.
+    - Use scikit-learn's TfidfVectorizer and cosine_similarity to compute similarity.
+    - Return JSON with keyword match, TF-IDF similarity, combined score, and keyword lists.
+
+- ai_service/README.md
+  Purpose: quick run instructions for the FastAPI service.
+
+- app/templates/resume/ats_analysis.html (edited)
+  Purpose: the Django template for ATS analysis. Major edits include:
+    - New upload/JD UI card with drag/drop and sample JD generation button.
+    - `{{ analysis|json_script:'analysis-json' }}` embedding for server-provided analysis JSON (if present) so charts can be created from server data.
+    - Chart.js canvases and initialization scripts creating `window.resumeCharts` entries for programmatic updates.
+    - Client-side code to intercept the upload form, POST to `http://127.0.0.1:8001/analyze`, and render returned analysis into `#ai-results` and update charts.
+    - UX improvements: loaders, animated entrance, collapsible suggestion lists.
+
+3) How the pieces connect (architecture)
+
+Local development architecture (prototype):
+- Django app (existing) serves web pages including `/resume/ats_analysis/` which renders `ats_analysis.html`.
+- FastAPI microservice (new) runs separately (default: `http://127.0.0.1:8001`) and exposes `/analyze` for resume + JD analysis.
+- The frontend JavaScript in `ats_analysis.html` intercepts the upload form submission and sends the file + JD to the FastAPI service. When the AI service returns JSON results, the frontend updates charts and displays matches/suggestions inline.
+
+4) How to run locally
+
+Prerequisites (Windows development):
+- Python 3.10+ recommended. Virtualenv (the repository already includes `myenv/` virtual environment for Django; you may prefer creating a separate venv for `ai_service`).
+
+Steps to run FastAPI analyzer:
+1. Open a PowerShell terminal and change to the ai_service folder:
+
+   cd C:\Users\hp\Desktop\Django\myresume\ai_service
+
+2. (Optional) Create and activate a new venv for the AI service:
+
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+
+3. Install dependencies:
+
+   pip install -r requirements.txt
+
+4. Start the FastAPI app (development):
+
+   uvicorn main:app --reload --port 8001 --host 127.0.0.1
+
+The AI service will be available at `http://127.0.0.1:8001`. The analyze endpoint is `POST /analyze`.
+
+Steps to run the Django site (if not already running):
+1. Activate the repository's virtual environment (if using the project's `myenv`):
+
+   cd C:\Users\hp\Desktop\Django\myresume
+   .\myenv\Scripts\Activate.ps1
+
+2. Install requirements for Django if needed (not provided here; the env seems present).
+
+3. Run Django dev server:
+
+   python manage.py runserver
+
+4. Visit the ATS analysis page in your browser (replace with the correct URL path used in your app; commonly `http://127.0.0.1:8000/resume/ats_analysis/` or the view route you configured).
+
+5) API contract: `/analyze`
+
+Endpoint: POST http://127.0.0.1:8001/analyze
+Content-Type: multipart/form-data
+Form fields:
+  - upload: file (resume). Supported types: .docx, .pdf, .txt
+  - job_description: string (plain text of JD)
+
+Success response (JSON):
+{
+  "keyword_match_pct": float,        # 0-100
+  "tfidf_similarity_pct": float,     # 0-100
+  "combined_score_pct": float,       # 0-100
+  "jd_keywords": ["kw1","kw2"],  # top keywords from JD
+  "matched_keywords": ["kw1"],     # subset present in resume
+  "missing_keywords": ["kw2"]      # JD keywords not in resume
+}
+
+Example curl (for testing):
+
+curl -X POST "http://127.0.0.1:8001/analyze" -F "upload=@C:\\path\\to\\resume.docx" -F "job_description=Senior Python developer with Django experience"
+
+6) Data shapes and assumptions
+- The JD keyword extraction is performed using TF-IDF: the service treats the JD as a single document and returns top-n terms by TF-IDF score.
+- Keyword matching is performed by a token-based approach (lowercase tokens, stopwords removed); it does a direct token match against JD keywords.
+- TF-IDF similarity uses scikit-learn's TfidfVectorizer applied to two documents (resume text and JD) and computes cosine similarity.
+- Combined score is a weighted linear combination (default weights: keyword match 60%, TF-IDF similarity 40%). You can change weights in `ai_service/main.py`.
+
+7) Files changed (detailed)
+- `app/templates/resume/ats_analysis.html`
+  - Added Chart.js canvas elements and script tags.
+  - Added `{{ analysis|json_script:'analysis-json' }}` usage to embed server analysis JSON when present.
+  - Added upload/JD card UI (drag/drop area), sample JD generator, and submit button behavior.
+  - Added JavaScript to POST to the AI service at `http://127.0.0.1:8001/analyze` and render results.
+
+- `ai_service/main.py` (new)
+  - Functions: file-to-text extractors, tokenizer, extract_top_keywords(), compute_similarity(), and `/analyze` endpoint.
+
+- `ai_service/requirements.txt` (new)
+  - Contains required packages for the AI service.
+
+- `ai_service/README.md` (new)
+  - Contains quick run instructions.
+
+8) Troubleshooting notes and common issues
+- TemplateSyntaxError: If Django raises TemplateSyntaxError after editing `ats_analysis.html`, search for incorrect filter usage like `default(0)` and replace with `|default:"0"`.
+- CORS errors: The FastAPI service allows CORS for development. If the browser blocks the request, ensure the FastAPI app is started and check its logs. In production, restrict allowed origins.
+- Missing Python packages: If running `ai_service` fails due to import errors, run `pip install -r ai_service/requirements.txt` inside a venv.
+- PDF extraction issues: PDF parsing is heuristic and can fail for scanned PDFs (images). Consider Tesseract OCR if you need to extract text from scanned PDFs.
+
+9) Security and production hardening recommendations
+- Authentication: Protect the `/analyze` endpoint (e.g., JWT, API key) if exposed beyond localhost.
+- Rate limiting: Add throttling to prevent abuse.
+- Input limits: Enforce file size limits and validate file types server-side.
+- Secrets: Do not commit secrets. Use environment variables for keys and configuration.
+- Containerization: Package the FastAPI app into a container for easier deployment and to pin dependencies.
+- Model improvements: For semantic matching, consider moving from TF-IDF to embeddings (e.g., sentence-transformers) or a hosted semantic search service. That will handle paraphrases and synonyms better.
+
+10) Suggested next steps and improvements
+- Replace token-based keyword matching with named-entity or phrase extraction (spaCy) for better quality.
+- Add a full end-to-end test that posts a sample resume and JD and asserts the combined score is computed.
+- Add persistence for historical analyses (store analyses and files in database) and show trends across submissions.
+- Add user authentication and per-user storage and history.
+- Build a React/Vite or Next.js frontend (Tailwind + shadcn) for richer interactions; serve the compiled assets from Django staticfiles or host separately.
+
+11) Where to find things in the repo
+- Django template: `app/templates/resume/ats_analysis.html`
+- AI microservice: `ai_service/main.py`, `ai_service/requirements.txt`, `ai_service/README.md`
+
+12) Contact points and variables to adjust in code
+- FastAPI URL used in template JS: `http://127.0.0.1:8001/analyze` — update if you run the AI service on a different host/port or behind a reverse proxy.
+- Combined score weights: configurable in `ai_service/main.py` (currently 60% keyword match / 40% TF-IDF similarity).
+
+13) Final verification steps (quick test plan)
+1. Start FastAPI: `uvicorn main:app --reload --port 8001` inside `ai_service/` venv.
+2. Start Django dev server (project virtualenv): `python manage.py runserver`.
+3. Open the ATS analysis page in browser.
+4. Drag & drop or select a resume file and paste a JD or click "Generate sample JD".
+5. Click "Get Result" (or the upload button) to submit. Confirm the results panel updates with JSON-derived metrics and charts refresh.
+
+14) Notes about assumptions and limitations
+- I made small, reasonable assumptions where details were unspecified:
+  - The AI microservice runs on localhost and is acceptable for development.
+  - JD text is plain text; file uploads only include the resume.
+  - The Django project routes the `ats_analysis.html` template to an accessible URL.
+- Limitations of current prototype:
+  - Not hardened for production.
+  - TF-IDF is simple and fast but not semantic-aware.
+
+-----
+If you'd like, I can:
+- Create automated tests that run the AI analysis against sample files.
+- Containerize the FastAPI service (Dockerfile + compose) and add a Run/Make task.
+- Scaffold a Next.js + Tailwind + shadcn frontend and wire it to the Django backend.
+
+Tell me which follow-up you'd like and I will implement it next.

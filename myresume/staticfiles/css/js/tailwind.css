@@ -1,0 +1,25 @@
+/* static/css/tailwind.css */
+
+/* Tailwind Base Styles */
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Tailwind Utility Examples */
+.bg-blue-500 {
+  background-color: #3b82f6;
+}
+.text-white {
+  color: #fff;
+}
+.p-6 {
+  padding: 1.5rem;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}

@@ -1,0 +1,343 @@
+
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resume - {{ resume.full_name }}{% endblock %}
+
+{% block content %}
+    <style>
+        /* =================================== */
+        /* START: PDF-LIKE 2-COLUMN LAYOUT     */
+        /* (Target Image: image_cff6e2.png)    */
+        /* =================================== */
+        @page { 
+            size: A4; 
+            margin: 1.5cm; /* Standard PDF margin */
+        }
+        
+        html, body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+            background: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #333;
+            font-size: 10.5pt; /* Base font size */
+            line-height: 1.45;
+            position: relative;
+        }
+
+        /* --- Full-width header bar --- */
+        .header-bar {
+            /* Positioned at the top of the page margin */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: #008aaa; /* Teal color from image */
+        }
+
+        /* --- Main Layout Container --- */
+        .resume-wrapper {
+            background-color: #cb96e9;
+            color: #111;
+            width: 100%;
+            max-width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            margin: 0 auto;
+            display: flex;
+            gap: 24px; /* Space between columns */
+            padding-top: 20px; /* Space below the header bar */
+        }
+
+        /* --- MAIN CONTENT (LEFT COLUMN) --- */
+        .main-content {
+            width: 65%;
+            flex-shrink: 0;
+
+            margin-left: 6px;
+           
+            
+        }
+
+        /* --- SIDEBAR (RIGHT COLUMN) --- */
+        .sidebar {
+            width: 35%;
+            flex-shrink: 0;
+            padding-top: 10px;
+        }
+        
+        /* --- Profile Image (in sidebar) --- */
+        .profile-image {
+            width: 60%;
+            height: auto;
+            border-radius: 8px; /* Rounded square */
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+        .profile-initial {
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            height: 0;
+            position: relative;
+            border-radius: 8px;
+            background: #e5e7eb; /* gray-200 */
+            margin-bottom: 20px;
+        }
+        .profile-initial-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            font-weight: 700;
+            color: #4b5563;
+        }
+        
+        .sidebar .section {
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title {
+            font-size: 11pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            border-bottom: 1.5px solid #d1d5db; /* Gray border */
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        /* Contact Info Section (in sidebar) */
+        .contact-section p {
+            margin: 0 0 6px 0;
+            font-size: 10pt;
+            font-weight: 500;
+        }
+        .contact-section a {
+            color: #374151;
+            text-decoration: none;
+        }
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+
+        /* Skills List (in sidebar) */
+        .skills-list {
+            list-style: disc; /* Target has bullets */
+            margin: 0;
+            padding-left: 18px;
+            font-size: 10pt;
+        }
+
+        .skills-list li {
+            margin-bottom: 5px;
+        }
+
+        /* --- MAIN CONTENT STYLES --- */
+        .main-header {
+            margin-bottom: 16px;
+        }
+        .main-header .full-name {
+            font-size: 32pt; /* Large name */
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .main-content .section {
+            margin-bottom: 20px;
+        }
+        
+        .main-title {
+            font-size: 13pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            /* Underline style from target image */
+            border-bottom: 1.5px solid #008aaa; /* Teal color */
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+        }
+
+        .summary-body {
+            font-size: 10.5pt;
+        }
+        
+        .experience-item {
+            margin-bottom: 16px;
+        }
+        .experience-title {
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #111;
+        }
+        .experience-meta { /* For dates or subtitles */
+            font-size: 10pt;
+            font-weight: 600; /* Bolder than italic */
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+        .experience-desc {
+            font-size: 10.5pt;
+        }
+        .experience-desc ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+         .experience-desc li {
+            margin-bottom: 5px;
+         }
+
+        /* Education (in main) */
+        .edu-item {
+            margin-bottom: 16px;
+        }
+        .edu-item .degree {
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #111;
+        }
+        .edu-item .institution {
+            font-size: 10.5pt;
+            font-weight: 600; /* Bolder */
+            color: #4b5563;
+        }
+
+        /* --- Print Fixes --- */
+        @media print {
+            body, .resume-wrapper {
+                margin: 0;
+                padding: 0;
+            }
+            .header-bar {
+                position: absolute; /* Use absolute for print */
+            }
+            .resume-wrapper {
+                padding-top: 10px;
+            }
+        }
+        /* =================================== */
+        /* END: NEW CSS FOR 2-COLUMN LAYOUT    */
+        /* =================================== */
+    </style>
+
+  
+    <!-- =================================== -->
+    <!-- START: NEW HTML STRUCTURE         -->
+    <!-- =================================== -->
+    <div class="resume-wrapper" style="padding: 20px 20px; ">
+        
+        <!-- --- MAIN CONTENT (LEFT COLUMN) --- -->
+        <main class="main-content">
+            
+            <!-- Main Header (Name) -->
+            <header class="main-header">
+                <h1 class="full-name">{{ resume.full_name }}</h1>
+            </header>
+
+            <!-- Summary Section -->
+            {% if render_summary or resume.summary %}
+            <section class="section summary">
+                <h2 class="main-title">Summary</h2>
+                <div class="section-body summary-body">
+                    {{ render_summary|default:resume.summary|safe }}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Experience (Using Projects) -->
+            {% if resume.project_items.exists %}
+            <section class="section experience">
+                <h2 class="main-title">Experience</h2>
+                {% for p in resume.project_items.all %}
+                <article class="experience-item">
+                    <div class="experience-title">{{ p.name }}</div>
+                    <!-- Meta line for role/company/date -->
+                    <div class="experience-meta">Your Role / Company / Date Range</div> 
+                    <div class="experience-desc">{{ p.description|safe }}</div>
+                    {% if p.url %}
+                    <div class="project-url" style="font-size: 10pt; margin-top: 4px;">
+                        <a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.url }}</a>
+                    </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+            
+            <!-- Education Section -->
+            {% if resume.education_items.exists %}
+            <section class="section education">
+                <h2 class="main-title">Education and Training</h2>
+                {% for e in resume.education_items.all %}
+                <article class="edu-item">
+                    <div class="degree">{{ e.degree }}{% if e.field %}, {{ e.field }}{% endif %}</div>
+                    <div class="institution">{{ e.institution }}</div>
+                </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            <!-- Certificates Section (Moved to main) -->
+            {% if resume.certification_items.exists %}
+            <section class="section certificates">
+                <h2 class="main-title">Certificates</h2>
+                {% for c in resume.certification_items.all %}
+                <article class="edu-item"> <!-- Can reuse education styling -->
+                    <div class="degree">{{ c.name }}</div>
+                    <div class="institution">{{ c.issuer }}</div>
+                </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+        </main>
+
+        <!-- --- SIDEBAR (RIGHT COLUMN) --- -->
+        <aside class="sidebar">
+
+            <!-- Profile Image -->
+            {% if resume.profile_image %}
+                <img src="{{ resume.profile_image.url }}" alt="{{ resume.full_name }}" class="profile-image">
+            {% else %}
+                <div class="profile-initial">
+                    <span class="profile-initial-text">{{ resume.full_name|first }}</span>
+                </div>
+            {% endif %}
+            
+            <!-- Contact Section -->
+            <section class="section contact-section" style="padding: 20px;">
+                <h2 class="sidebar-title">Contact</h2>
+                <p><strong>Address:</strong> {{ resume.location }}</p> <!-- Example Location -->
+                <p><strong>Phone:</strong> {{ resume.phone }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ resume.email }}">{{ resume.email }}</a></p>
+                {% if resume.linkedin %}
+                <p><strong>LinkedIn:</strong> <a href="{{ resume.linkedin }}" target="_blank" rel="noopener">View Profile</a></p>
+                {% endif %}
+                {% if resume.github %}
+                <p><strong>GitHub:</strong> <a href="{{ resume.github }}" target="_blank" rel="noopener">View Profile</a></p>
+                {% endif %}
+            </section>
+
+            <!-- Skills Section -->
+            {% if resume.skill_items.exists %}
+            <section class="section skills" style="padding: 20px;">
+                <h2 class="sidebar-title">Skills</h2>
+                <ul class="skills-list">
+                    {% for s in resume.skill_items.all %}
+                    <li>{{ s.name }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+        </aside>
+    </div>
+
+    {% endblock %}

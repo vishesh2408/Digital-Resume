@@ -1,56 +1,194 @@
 
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Resume - {{ resume.full_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto bg-white p-10 rounded-lg shadow-2xl border border-gray-100 print:shadow-none print:border-0 print:p-0">
-    <div class="flex items-center space-x-6 mb-8 border-b pb-6 border-gray-200 print:mb-4">
-        {% if resume.profile_image %}
-            <img src="{{ resume.profile_image.url }}" alt="{{ resume.full_name }}" class="w-24 h-24 rounded-full object-cover shadow-md print:w-16 print:h-16 print:rounded-none">
-        {% else %}
-            <div class="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl text-indigo-800 font-bold print:w-16 print:h-16 print:rounded-none print:bg-white print:text-indigo-600">
-                {{ resume.full_name|first }}
+<div class="resume-page">
+
+    <link rel="stylesheet" href="{% static 'css/template1.css' %}">
+
+    <style>
+    /* Inline styles to ensure PDF renderers pick them up; same rules are also provided in static/css/template1.css */
+    /* Reduced @page margin to avoid extra top/bottom margins that push content to the next page */
+    @page { size: A4; margin: 8mm; }
+    html, body { font-family: 'Times New Roman', Times, serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .resume-page { max-width: 780px; margin: 0 auto; background: #fff; padding: 8px; box-sizing: border-box; }
+  
+     
+    .resume-header {
+    display: flex;
+    justify-content: space-between; /* Pushes items to opposite ends */
+    align-items: flex-start; /* Aligns items to the top */
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #000000; /* The line under the header */
+}
+    .resume-left, .resume-right { color: black; display: table-cell; vertical-align: top; }
+    .resume-left { width: 65%; }
+    .resume-right { width: 35%; text-align: right; padding-left: 12px;  }
+    
+    .resume-right { display: flex;
+    /* gap: 0px;  */
+    padding-top: 50px;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+    h1.name { margin: 0; font-size: 28px; color: #0b3d91; font-weight: 700;  }
+
+    .resume-left .name {
+    margin: 0; /* Removes default h1 margin */
+    font-size: 2.2em;
+    font-weight: 600;
+}
+ 
+/* 4. Individual contact items */
+
+.contact-line {
+    font-size: 0.9em;
+    margin-bottom: 4px; /* Space between lines (e.g., LinkedIn and GitHub) */
+}
+
+/* Optional: Style links to match the image */
+.contact-line a {
+    color: black; /* A standard blue link color */
+    text-decoration: none;
+}
+
+.contact-line a:hover {
+    text-decoration: underline;
+}
+    /* .contact-line { font-size: 12px; margin-top: 6px; }
+    .contact-line a { color: black; text-decoration: underline; } */
+
+    .section { margin-bottom: 12px; margin-left: 8px; }
+    .section .section-title { font-size: 0.9em; color: #0b3d91; text-transform: uppercase; letter-spacing: .06em; margin: 6px 0; font-weight: 700; }
+    .section .section-body { font-size: 0.9em; color: black; line-height: 1.25; }
+
+    ul.plain { margin: 4px 0 0 2px; padding: 0; }
+    ul.plain li { margin-bottom: 4px; }
+
+    .item { margin-bottom: 8px; }
+    .item .title { font-weight: 700; font-size: 13px; }
+    .item .meta { font-size: 1em; color: #000000; margin-top: 2px; font-family: 'Times New Roman', Times, serif; }
+
+    /* Education: show dates aligned to right within the same line */
+    .edu-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .edu-left { flex: 1; }
+    .edu-right { margin-left: 12px; white-space: nowrap; text-align: right; color: #444; font-size: 12px; }
+
+    /* Small helpers */
+    a { color: #0b3d91; }
+    
+
+    @media print {
+        .resume-page { padding: 0; margin: 0; }
+        body { background: #fff; }
+    }
+    </style>
+
+<div class="resume-page-inner" style="margin: 8px;">
+
+    <header class="resume-header">
+        <div class="resume-left">
+           <h1 class="name">{{ resume.full_name }}</h1>
+           <div class="contact-line">
+             {% if resume.linkedin %}
+                LinkedIn: <a href="{{ resume.linkedin }}" target="_blank" rel="noopener">{{ resume.linkedin }}</a>
+             {% endif %}
             </div>
-        {% endif %}
-        <div>
-            <h1 class="text-4xl font-extrabold text-gray-900 print:text-2xl">{{ resume.full_name }}</h1>
-            <p class="text-lg text-gray-600 print:text-base">{{ resume.email }} | {{ resume.phone }}</p>
+           <div class="contact-line">
+             {% if resume.github %}
+                GitHub: <a href="{{ resume.github }}" target="_blank" rel="noopener">{{ resume.github }}</a>
+             {% endif %}
+            </div>
         </div>
+
+       <div class="resume-right">
+            <div class="contact-line">
+              {% if resume.email %}
+                Email: <a href="mailto:{{ resume.email }}">{{ resume.email }}</a>
+              {% endif %}
+            </div>
+            <div class="contact-line">
+              {% if resume.phone %}
+                Mobile: {{ resume.phone }}
+               {% endif %}
+            </div>
+        </div>
+   </header>
+
+        {% if render_summary or resume.summary %}
+            <section class="section">
+                <div class="section-title">Summary</div>
+                <div class="section-body">{{ render_summary|default:resume.summary|safe }}</div>
+            </section>
+        {% endif %}
+
+        {% if resume.skill_items.exists %}
+            <section class="section">
+                <div class="section-title">Skills</div>
+                <div class="section-body">
+                    <ul class="plain">
+                        {% for s in resume.skill_items.all %}
+                            <pre style="font-size:0.9rem; font-family: 'Times New Roman', Times, serif; "><li> {{ s.category }}:     {{ s.name }}</li></pre>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if resume.project_items.exists %}
+            <section class="section">
+                <div class="section-title">Projects</div>
+                <div class="section-body">
+                    {% for p in resume.project_items.all %}
+                        <div class="item">
+                            <div class="title">{{ p.name }}</div>
+                            <div class="meta">{{ p.description|safe }}</div>
+                            {% if p.url %}<div class="meta"><a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.url }}</a></div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if resume.certification_items.exists %}
+            <section class="section">
+                <div class="section-title">Certificates</div>
+                <div class="section-body">
+                    {% for c in resume.certification_items.all %}
+                        <div class="item">
+                            <div class="title">{{ c.name }}</div>
+                            <div class="meta">{{ c.issuer }}{% if c.duration %} • {{ c.duration }}{% endif %}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if resume.education_items.exists %}
+            <section class="section">
+                <div class="section-title">Education</div>
+                <div class="section-body">
+                    {% for e in resume.education_items.all %}
+                        <div class="item edu-row">
+                            <div class="edu-left">
+                                <div class="title">{{ e.institution }} — {{ e.degree }}{% if e.field %}, {{ e.field }}{% endif %}</div>
+                            </div>
+                            <div class="edu-right">
+                                {% if e.start_date %}{{ e.start_date }}{% endif %} — {% if e.end_date %}{{ e.end_date }}{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Sidebar -->
-        <div class="col-span-1 space-y-8">
-            <div class="prose max-w-none">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Summary</h2>
-                {{ resume.summary|safe }}
-            </div>
-            <div class="prose max-w-none">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Skills</h2>
-                {{ resume.skills|safe }}
-            </div>
-            <div class="prose max-w-none">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Certificates</h2>
-                {{ resume.certificates|safe }}
-            </div>
-        </div>
-        
-        <!-- Main Content -->
-        <div class="col-span-2 space-y-8">
-            <div class="prose max-w-none">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Projects</h2>
-                {{ resume.projects|safe }}
-            </div>
-            <div class="prose max-w-none">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Education</h2>
-                {{ resume.education|safe }}
-            </div>
-            <div class="prose max-w-none">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Training</h2>
-                {{ resume.training|safe }}
-            </div>
-        </div>
-    </div>
 </div>
+
 {% endblock %}

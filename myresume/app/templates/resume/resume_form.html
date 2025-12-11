@@ -3,10 +3,20 @@
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+<div class="relative max-w-4xl mx-auto bg-teal-100 p-8 rounded-xl shadow-2xl border border-gray-100">
+    <div id="form-loader" class="hidden absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center z-10">
+        <div class="h-10 w-10 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
+    </div>
     <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">{{ page_title }}</h1>
-    <form method="post" enctype="multipart/form-data" id="resume-form" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" id="resume-form" class="space-y-6 text-gray-700">
         {% csrf_token %}
+    {# Show any top-level resume form errors so users see why the submit failed #}
+    {% if form.non_field_errors %}
+    <div class="text-sm text-red-600 mb-2">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% if form.errors %}
+    <div class="text-sm text-red-600 mb-2">Please fix the highlighted fields below. {{ form.errors }}</div>
+    {% endif %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Full Name</label>
@@ -21,83 +31,520 @@
                 {{ form.phone }}
             </div>
             <div>
+                <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700">Location</label>
+                {{ form.location }}
+            </div>
+            <div>
                 <label for="{{ form.profile_image.id_for_label }}" class="block text-sm font-medium text-gray-700">Profile Image</label>
                 {{ form.profile_image }}
             </div>
+            <div>
+                <label for="{{ form.linkedin.id_for_label }}" class="block text-sm font-medium text-gray-700">LinkedIn</label>
+                {{ form.linkedin }}
+            </div>
+            <div>
+                <label for="{{ form.github.id_for_label }}" class="block text-sm font-medium text-gray-700">GitHub</label>
+                {{ form.github }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700">Website/Portfolio</label>
+                {{ form.website }}
+            </div>
         </div>
-        
+
         <div class="space-y-4">
-            <!-- Quill rich text editors for each section -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Summary</label>
-                <div id="summary-editor" class="bg-gray-50 border border-gray-300 rounded-md"></div>
-                <input type="hidden" name="summary" id="summary-input">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Skills</label>
-                <div id="skills-editor" class="bg-gray-50 border border-gray-300 rounded-md"></div>
-                <input type="hidden" name="skills" id="skills-input">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Projects</label>
-                <div id="projects-editor" class="bg-gray-50 border border-gray-300 rounded-md"></div>
-                <input type="hidden" name="projects" id="projects-input">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Education</label>
-                <div id="education-editor" class="bg-gray-50 border border-gray-300 rounded-md"></div>
-                <input type="hidden" name="education" id="education-input">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Training</label>
-                <div id="training-editor" class="bg-gray-50 border border-gray-300 rounded-md"></div>
-                <input type="hidden" name="training" id="training-input">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Certificates</label>
-                <div id="certificates-editor" class="bg-gray-50 border border-gray-300 rounded-md"></div>
-                <input type="hidden" name="certificates" id="certificates-input">
+                <label for="id_summary" class="block text-sm font-medium text-gray-700 mb-1">Summary</label>
+                {{ form.summary }}
             </div>
         </div>
+
+        <!-- Experience Formset -->
+        <div class="space-y-4 text-gray-700">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold">Training Experience/Internship Experience</h2>
+                <button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm" onclick="addForm('exp')">
+                    <i class="fa fa-plus"></i>
+                    <span>Add Experience</span>
+                </button>
+            </div>
+            {{ exp_formset.management_form }}
+            <div id="exp-forms" class="space-y-4">
+        {% for form in exp_formset %}
+        <div class="p-4 border border-gray-300 rounded-md">
+            {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+            {{ form.non_field_errors }}
+                        {% if form.errors %}
+                        <div class="text-sm text-red-600 mb-2">{{ form.errors }}</div>
+                        {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            {{ form.position.label_tag }} {{ form.position }}
+                        </div>
+                        <div>
+                            {{ form.company.label_tag }} {{ form.company }}
+                        </div>
+                        <div>
+                            {{ form.location.label_tag }} {{ form.location }}
+                        </div>
+                        <div>
+                            {{ form.start_date.label_tag }} {{ form.start_date }}
+                        </div>
+                        <div>
+                            {{ form.end_date.label_tag }} {{ form.end_date }}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {{ form.current }} <span>Currently working here</span>
+                        </div>
+                        <div class="md:col-span-2">
+                            {{ form.description.label_tag }} {{ form.description }}
+                        </div>
+                        <div class="md:col-span-2">
+                            {{ form.achievements.label_tag }} {{ form.achievements }}
+                            <p class="text-xs text-gray-500">One bullet per line (optional)</p>
+                        </div>
+                        <div class="md:col-span-2 flex items-center justify-end">
+                            {% if form.DELETE %}<div class="hidden">{{ form.DELETE }}</div>{% endif %}
+                            <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="deleteBlock(this)">Delete Experience</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <template id="exp-empty">
+                <div class="p-4 border rounded-md">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label>Position</label><input type="text" name="exp-__prefix__-position" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Company</label><input type="text" name="exp-__prefix__-company" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Location</label><input type="text" name="exp-__prefix__-location" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Start Date</label><input type="month" name="exp-__prefix__-start_date" class="w-full border rounded-md p-2"/></div>
+                        <div><label>End Date</label><input type="month" name="exp-__prefix__-end_date" class="w-full border rounded-md p-2"/></div>
+                        <div class="flex items-center gap-2"><input type="checkbox" name="exp-__prefix__-current"/> <span>Currently working here</span></div>
+                        <div class="md:col-span-2"><label>Description</label><textarea name="exp-__prefix__-description" rows="3" class="w-full border rounded-md p-2"></textarea></div>
+                        <div class="md:col-span-2"><label>Achievements</label><textarea name="exp-__prefix__-achievements" rows="3" class="w-full border rounded-md p-2"></textarea></div>
+                        <input type="checkbox" name="exp-__prefix__-DELETE" class="hidden" />
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Projects Formset -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold">Projects</h2>
+                <button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm" onclick="addForm('projects')">
+                    <i class="fa fa-plus"></i>
+                    <span>Add Project</span>
+                </button>
+            </div>
+            {{ project_formset.management_form }}
+            <div id="projects-forms" class="space-y-4">
+                {% for form in project_formset %}
+                <div class="p-4 border rounded-md">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {{ form.non_field_errors }}
+                    {% if form.errors %}
+                    <div class="text-sm text-red-600 mb-2">{{ form.errors }}</div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">{{ form.name.label_tag }} {{ form.name }}</div>
+                        <div class="md:col-span-2">
+                            {{ form.description.label_tag }}
+                            <!-- Hidden textarea holds the serialized bullet list as HTML (ul/li) -->
+                            <div class="points-widget" data-prefix="{{ form.prefix }}">
+                                {{ form.description }}
+                                <div class="points-controls">
+                                    <button type="button" class="add-point-btn px-3 py-1 bg-gray-200 rounded text-sm">+ Add point</button>
+                                </div>
+                                <div class="points-list mt-2"></div>
+                            </div>
+                            <p class="text-xs text-gray-500">Add one bullet point per input. Use the + Add point button to add more.</p>
+                        </div>
+                        <div>{{ form.technologies_csv.label_tag }} {{ form.technologies_csv }}</div>
+                        <div>{{ form.url.label_tag }} {{ form.url }}</div>
+                        <div class="md:col-span-2">{{ form.end_date.label_tag }} {{ form.end_date }}</div>
+                        <div class="md:col-span-2 flex items-center justify-end">
+                            {% if form.DELETE %}<div class="hidden">{{ form.DELETE }}</div>{% endif %}
+                            <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="deleteBlock(this)">Delete Project</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <template id="projects-empty">
+                <div class="p-4 border rounded-md">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2"><label>Project Name</label><input type="text" name="projects-__prefix__-name" class="w-full border rounded-md p-2"/></div>
+                        <div class="md:col-span-2"><label>Description</label>
+                            <div class="points-widget" data-prefix="projects-__prefix__">
+                                <textarea name="projects-__prefix__-description" class="w-full border rounded-md p-2"></textarea>
+                                <div class="points-controls">
+                                    <button type="button" class="add-point-btn px-3 py-1 bg-gray-200 rounded text-sm">+ Add point</button>
+                                </div>
+                                <div class="points-list mt-2"></div>
+                            </div>
+                        </div>
+                        <div><label>Technologies</label><input type="text" name="projects-__prefix__-technologies_csv" class="w-full border rounded-md p-2"/></div>
+                        <div><label>URL</label><input type="url" name="projects-__prefix__-url" class="w-full border rounded-md p-2"/></div>
+                        <div class="md:col-span-2"><label>End date</label><input type="month" name="projects-__prefix__-end_date" class="w-full border rounded-md p-2"/></div>
+                        <input type="checkbox" name="projects-__prefix__-DELETE" class="hidden" />
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Certifications Formset -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold">Certifications</h2>
+                <button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm" onclick="addForm('certs')">
+                    <i class="fa fa-plus"></i>
+                    <span>Add Certification</span>
+                </button>
+            </div>
+            {{ cert_formset.management_form }}
+            <div id="certs-forms" class="space-y-4">
+                {% for form in cert_formset %}
+                <div class="p-4 border rounded-md">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {{ form.non_field_errors }}
+                    {% if form.errors %}
+                    <div class="text-sm text-red-600 mb-2">{{ form.errors }}</div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">{{ form.name.label_tag }} {{ form.name }}</div>
+                        <div>{{ form.issuer.label_tag }} {{ form.issuer }}</div>
+                        <div>{{ form.issue_date.label_tag }} {{ form.issue_date }}</div>
+                        <div>{{ form.expiry_date.label_tag }} {{ form.expiry_date }}</div>
+                        <div>{{ form.credential_id.label_tag }} {{ form.credential_id }}</div>
+                        <div class="md:col-span-2">{{ form.duration.label_tag }} {{ form.duration }}<p class="text-xs text-gray-500">Optional pretty format like Dec’ 24</p></div>
+                        <div class="md:col-span-2 flex items-center justify-end">
+                            {% if form.DELETE %}<div class="hidden">{{ form.DELETE }}</div>{% endif %}
+                            <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="deleteBlock(this)">Delete Certification</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <template id="certs-empty">
+                <div class="p-4 border rounded-md">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2"><label>Certification Name</label><input type="text" name="certs-__prefix__-name" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Issuer</label><input type="text" name="certs-__prefix__-issuer" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Issue Date</label><input type="month" name="certs-__prefix__-issue_date" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Expiry Date</label><input type="month" name="certs-__prefix__-expiry_date" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Credential ID</label><input type="text" name="certs-__prefix__-credential_id" class="w-full border rounded-md p-2"/></div>
+                        <div class="md:col-span-2"><label>Duration (pretty, e.g., Dec’ 24)</label><input type="text" name="certs-__prefix__-duration" class="w-full border rounded-md p-2"/></div>
+                        <input type="checkbox" name="certs-__prefix__-DELETE" class="hidden" />
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Education Formset -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold">Education</h2>
+                <button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm" onclick="addForm('edu')">
+                    <i class="fa fa-plus"></i>
+                    <span>Add Education</span>
+                </button>
+            </div>
+            {{ edu_formset.management_form }}
+            <div id="edu-forms" class="space-y-4">
+                {% for form in edu_formset %}
+                <div class="p-4 border rounded-md">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {{ form.non_field_errors }}
+                    {% if form.errors %}
+                    <div class="text-sm text-red-600 mb-2">{{ form.errors }}</div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">{{ form.institution.label_tag }} {{ form.institution }}</div>
+                        <div>{{ form.degree.label_tag }} {{ form.degree }}</div>
+                        <div>{{ form.field.label_tag }} {{ form.field }}</div>
+                        <div>{{ form.location.label_tag }} {{ form.location }}</div>
+                        <div>{{ form.gpa.label_tag }} {{ form.gpa }}</div>
+                        <div class="md:col-span-2">{{ form.end_date.label_tag }} {{ form.end_date }}</div>
+                        <div class="md:col-span-2 flex items-center justify-end">
+                            {% if form.DELETE %}<div class="hidden">{{ form.DELETE }}</div>{% endif %}
+                            <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="deleteBlock(this)">Delete Education</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <template id="edu-empty">
+                <div class="p-4 border rounded-md">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2"><label>Institution</label><input type="text" name="edu-__prefix__-institution" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Degree</label><input type="text" name="edu-__prefix__-degree" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Field of Study</label><input type="text" name="edu-__prefix__-field" class="w-full border rounded-md p-2"/></div>
+                        <div><label>Location</label><input type="text" name="edu-__prefix__-location" class="w-full border rounded-md p-2"/></div>
+                        <div><label>GPA/CGPA</label><input type="text" name="edu-__prefix__-gpa" class="w-full border rounded-md p-2"/></div>
+                        <div class="md:col-span-2"><label>Completion date</label><input type="month" name="edu-__prefix__-end_date" class="w-full border rounded-md p-2"/></div>
+                        <input type="checkbox" name="edu-__prefix__-DELETE" class="hidden" />
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Extracurricular Formset -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold">Extracurricular</h2>
+                <button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm" onclick="addForm('extra')">
+                    <i class="fa fa-plus"></i>
+                    <span>Add Extracurricular</span>
+                </button>
+            </div>
+            {{ extra_formset.management_form }}
+            <div id="extra-forms" class="space-y-4">
+                {% for form in extra_formset %}
+                <div class="p-4 border rounded-md">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {{ form.non_field_errors }}
+                    {% if form.errors %}
+                    <div class="text-sm text-red-600 mb-2">{{ form.errors }}</div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">{{ form.title.label_tag }} {{ form.title }}</div>
+                        <div class="md:col-span-2">{{ form.description.label_tag }} {{ form.description }}</div>
+                        <div>{{ form.start_date.label_tag }} {{ form.start_date }}</div>
+                        <div>{{ form.end_date.label_tag }} {{ form.end_date }}</div>
+                        <div class="md:col-span-2 flex items-center justify-end">
+                            {% if form.DELETE %}<div class="hidden">{{ form.DELETE }}</div>{% endif %}
+                            <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="deleteBlock(this)">Delete Extracurricular</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <template id="extra-empty">
+                <div class="p-4 border rounded-md">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2"><label>Title</label><input type="text" name="extra-__prefix__-title" class="w-full border rounded-md p-2"/></div>
+                        <div class="md:col-span-2"><label>Description</label><textarea name="extra-__prefix__-description" class="w-full border rounded-md p-2"></textarea></div>
+                        <div><label>Start date</label><input type="month" name="extra-__prefix__-start_date" class="w-full border rounded-md p-2"/></div>
+                        <div><label>End date</label><input type="month" name="extra-__prefix__-end_date" class="w-full border rounded-md p-2"/></div>
+                        <input type="checkbox" name="extra-__prefix__-DELETE" class="hidden" />
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Skills Formset -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold">Skills</h2>
+                <button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm" onclick="addForm('skills')">
+                    <i class="fa fa-plus"></i>
+                    <span>Add Skill</span>
+                </button>
+            </div>
+            {{ skill_formset.management_form }}
+            <div id="skills-forms" class="space-y-4">
+                {% for form in skill_formset %}
+                <div class="p-4 border rounded-md">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    <div class="flex justify-end items-start mb-2">
+                        {% if form.DELETE %}<div class="hidden">{{ form.DELETE }}</div>{% endif %}
+                        <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="deleteBlock(this)">Delete Skill</button>
+                    </div>
+                    {% if form.errors %}
+                    <div class="text-sm text-red-600 mb-2">{{ form.errors }}</div>
+                    {% endif %}
+                    <div class="space-y-3">
+                        <div>
+                            {{ form.name.label_tag }} {{ form.name }}
+                        </div>
+                        <div>
+                            {{ form.category.label_tag }} {{ form.category }}
+                        </div>
+                        <div>
+                            <label>Proficiency Level:</label> {{ form.level }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <template id="skills-empty">
+                <div class="p-4 border rounded-md">
+                    <div class="space-y-3">
+                        <div><label>Skill Name *</label><input type="text" name="skills-__prefix__-name" class="w-full border rounded-md p-2"/></div>
+                        <div>
+                            <label>Category</label>
+                            <select name="skills-__prefix__-category" class="w-full px-3 py-2 border-6 rounded-md">
+                                <option value="Technical">Technical</option>
+                                <option value="Soft Skills">Soft Skills</option>
+                                <option value="Languages">Languages</option>
+                                <option value="Tools">Tools/Plateforms</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Proficiency Level: 3/5</label>
+                            <input type="range" min="1" max="5" name="skills-__prefix__-level" value="3" class="w-full" />
+                        </div>
+                        <input type="checkbox" name="skills-__prefix__-DELETE" class="hidden" />
+                    </div>
+                </div>
+            </template>
+        </div>
+
         
-        <button type="submit" class="w-full py-3 px-4 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition-colors">
-            Save Resume
-        </button>
+
+        
+        
+        
     </form>
 </div>
 
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<!-- Sticky Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-sm py-3">
+    <div class="max-w-4xl mx-auto px-4 flex items-center justify-between">
+        <a href="{% url 'app:resume_list' %}" class="px-4 py-2 text-gray-700 hover:text-gray-900 rounded-md">Cancel</a>
+        <div class="flex items-center gap-3">
+            <button type="submit" form="resume-form" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow">
+                Save Resume
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Quill editors for each field
-        var summaryEditor = new Quill('#summary-editor', { theme: 'snow' });
-        var skillsEditor = new Quill('#skills-editor', { theme: 'snow' });
-        var projectsEditor = new Quill('#projects-editor', { theme: 'snow' });
-        var educationEditor = new Quill('#education-editor', { theme: 'snow' });
-        var trainingEditor = new Quill('#training-editor', { theme: 'snow' });
-        var certificatesEditor = new Quill('#certificates-editor', { theme: 'snow' });
+        // --- Delete and formset helpers ---
+        function deleteBlock(btn) {
+            const block = btn.closest('.p-4.border.rounded-md');
+            if (!block) return;
+            const del = block.querySelector("input[name$='-DELETE']");
+            if (del) {
+                del.checked = true;
+                block.style.display = 'none';
+            } else {
+                block.remove();
+            }
+        }
+        window.deleteBlock = deleteBlock;
 
-        // Populate editors with existing data on edit view
-        {% if form.instance %}
-        summaryEditor.root.innerHTML = '{{ form.instance.summary|escapejs|safe }}';
-        skillsEditor.root.innerHTML = '{{ form.instance.skills|escapejs|safe }}';
-        projectsEditor.root.innerHTML = '{{ form.instance.projects|escapejs|safe }}';
-        educationEditor.root.innerHTML = '{{ form.instance.education|escapejs|safe }}';
-        trainingEditor.root.innerHTML = '{{ form.instance.training|escapejs|safe }}';
-        certificatesEditor.root.innerHTML = '{{ form.instance.certificates|escapejs|safe }}';
-        {% endif %}
+        function addForm(prefix) {
+            const totalFormsInput = document.querySelector(`input[name="${prefix}-TOTAL_FORMS"]`);
+            const container = document.getElementById(`${prefix}-forms`);
+            const template = document.getElementById(`${prefix}-empty`).content.cloneNode(true);
+            const index = parseInt(totalFormsInput.value, 10);
+            const html = template.firstElementChild.outerHTML.replace(/__prefix__/g, index);
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html;
+            container.appendChild(wrapper.firstElementChild);
+            totalFormsInput.value = index + 1;
+            // If this is the projects formset, initialize the points widget for the new form
+            if (prefix === 'projects') {
+                initPointsFor(prefix, index);
+            }
+        }
+        window.addForm = addForm;
 
-        // On form submit, copy content from Quill editors to hidden input fields
-        document.getElementById('resume-form').onsubmit = function() {
-            document.getElementById('summary-input').value = summaryEditor.root.innerHTML;
-            document.getElementById('skills-input').value = skillsEditor.root.innerHTML;
-            document.getElementById('projects-input').value = projectsEditor.root.innerHTML;
-            document.getElementById('education-input').value = educationEditor.root.innerHTML;
-            document.getElementById('training-input').value = trainingEditor.root.innerHTML;
-            document.getElementById('certificates-input').value = certificatesEditor.root.innerHTML;
-        };
+        // --- Simple submit handler: show loader only ---
+        const form = document.getElementById('resume-form');
+        if (form) {
+            form.onsubmit = function() {
+                const loader = document.getElementById('form-loader');
+                if (loader) loader.classList.remove('hidden');
+                // Before submit, serialize all points widgets into their hidden textareas
+                document.querySelectorAll('.points-widget').forEach(function(widget) {
+                    const prefix = widget.dataset.prefix; // e.g. projects-0
+                    const textarea = widget.querySelector('textarea');
+                    if (!textarea) return;
+                    const list = widget.querySelectorAll('.point-input');
+                    const parts = [];
+                    list.forEach(function(inp){
+                        const v = inp.value.trim();
+                        if (v) parts.push(v);
+                    });
+                    if (parts.length) {
+                        const ul = '<ul>' + parts.map(function(p){ return '<li>' + escapeHtml(p) + '</li>'; }).join('') + '</ul>';
+                        textarea.value = ul;
+                    } else {
+                        textarea.value = '';
+                    }
+                });
+            };
+        }
+        // Utility to escape HTML when serializing
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Initialize points inputs for a specific project form index
+        function initPointsFor(prefix, index) {
+            // prefix is like 'projects' (formset prefix), form prefix is 'projects-0'
+            const formPrefix = `${prefix}-${index}`;
+            // Try to find textarea by name
+            const textarea = document.querySelector(`textarea[name="${formPrefix}-description"]`);
+            // If not found, try id
+            const taById = document.getElementById(`id_${formPrefix}-description`);
+            const ta = textarea || taById;
+            // Find the widget container that wraps this textarea
+            let widget = null;
+            if (ta) widget = ta.closest('.points-widget');
+            if (!widget) return;
+
+            const listContainer = widget.querySelector('.points-list');
+            const addBtn = widget.querySelector('.add-point-btn');
+
+            // hide the textarea (we use it only for serialization)
+            if (ta) ta.style.display = 'none';
+            // parse existing textarea content into points
+            const pts = [];
+            if (ta && ta.value) {
+                const v = ta.value.trim();
+                if (v.startsWith('<ul')) {
+                    const tmp = document.createElement('div'); tmp.innerHTML = v;
+                    tmp.querySelectorAll('li').forEach(li => pts.push(li.textContent.trim()));
+                } else {
+                    v.split(/\r?\n/).forEach(line => { const t=line.trim(); if (t) pts.push(t); });
+                }
+            }
+
+            function renderPoints() {
+                listContainer.innerHTML = '';
+                pts.forEach(function(p, idx){
+                    const row = document.createElement('div');
+                    row.className = 'point-row mb-2';
+                    const inp = document.createElement('input');
+                    inp.type = 'text'; inp.className = 'point-input w-full border rounded-md p-2';
+                    inp.value = p;
+                    row.appendChild(inp);
+                    const del = document.createElement('button');
+                    del.type = 'button'; del.className = 'delete-point-btn mt-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs';
+                    del.textContent = 'Delete point';
+                    del.addEventListener('click', function(){
+                        const i = Array.from(listContainer.querySelectorAll('.point-row')).indexOf(row);
+                        if (i >= 0) { pts.splice(i,1); renderPoints(); }
+                    });
+                    row.appendChild(del);
+                    listContainer.appendChild(row);
+                });
+                if (pts.length === 0) {
+                    // create one empty input by default
+                    pts.push(''); renderPoints();
+                }
+            }
+
+            addBtn.onclick = function(){ pts.push(''); renderPoints(); };
+
+            renderPoints();
+        }
+
+        // Initialize all existing project points widgets on load
+        function initAllProjectPoints() {
+            const totalFormsInput = document.querySelector('input[name="projects-TOTAL_FORMS"]');
+            if (!totalFormsInput) return;
+            const total = parseInt(totalFormsInput.value, 10);
+            for (let i=0;i<total;i++) initPointsFor('projects', i);
+        }
+        initAllProjectPoints();
     });
 </script>
+
 {% endblock %}

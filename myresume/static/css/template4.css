@@ -1,0 +1,18 @@
+/* Template 4 - Elegant centered layout with subtle border */
+@page { size: A4; margin: 14mm; }
+body { font-family: Georgia, 'Times New Roman', serif; background: #ffffff; color:#111827; }
+.container { width:210mm; min-height:297mm; margin:8mm auto; padding:16mm; box-sizing:border-box; border:0.5px solid #e6e7eb; }
+.header { text-align:center; margin-bottom:10px; }
+.header h1 { font-size:22px; letter-spacing:0.5px; margin-bottom:4px; }
+.header p { color:#6b7280; font-size:12px; margin:0; }
+.section { margin-bottom:12px; }
+.section-title { font-weight:700; color:#0f172a; font-size:12px; border-bottom:1px dashed #e6e7eb; padding-bottom:6px; margin-bottom:8px; }
+.prose { font-size:12.5px; line-height:1.55; }
+.prose ul { padding-left:18px; }
+@media print { .container { padding:10mm; } }
+
+/* PDF / print helpers (template1-alike) */
+@page { size: A4; margin: 8mm; }
+html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+.container { box-sizing: border-box; }
+@media print { .container { padding: 8mm !important; } }

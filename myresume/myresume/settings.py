@@ -242,8 +242,32 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        # Increase the timeout so short concurrent writes wait instead of failing
+        'OPTIONS': {
+            'timeout': 20,
+            'init_command': "PRAGMA journal_mode=WAL;",
+        },
     }
 }
+
+# Improve SQLite concurrency in development by enabling WAL and setting busy timeout
+# This makes transient "database is locked" errors less likely. For production use
+# consider PostgreSQL or another server-grade database.
+from django.db.backends.signals import connection_created
+
+def _sqlite_connection_created(sender, connection, **kwargs):
+    if connection.vendor == 'sqlite':
+        try:
+            cursor = connection.cursor()
+            # Enable WAL journal mode for better concurrency
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            # Make sure busy timeout is set at the SQLite level too (ms)
+            cursor.execute('PRAGMA busy_timeout=20000;')
+        except Exception:
+            # Non-fatal; if this fails we still continue with default settings
+            pass
+
+connection_created.connect(_sqlite_connection_created)
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -274,7 +298,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'app/static')]
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'app/static')]
+
+# Tell Django where to collect static files
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Media files
 MEDIA_URL = '/media/'
@@ -287,3 +318,5 @@ LOGIN_REDIRECT_URL = 'app:resume_list'
 LOGOUT_REDIRECT_URL = 'login'
 
 LOGIN_URL = 'login'
+
+CSRF_COOKIE_SECURE = False

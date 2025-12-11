@@ -1,0 +1,204 @@
+/* template2.css
+	 Semantic styles for template2 (used for browser and WeasyPrint PDF export)
+	 Keep this file small and focused on print-safe properties.
+*/
+
+/* Page & container */
+@page { size: A4; margin: 12mm; }
+
+:root {
+    --page-width: 800px;
+    --accent: #1f2937; /* slate-800 */
+    --muted: #6b7280; /* gray-500 */
+    --heading: #111827; /* gray-900 */
+    --accent-border: #4f46e5; /* indigo-600 */
+    
+    /* UPDATED: Changed to a sans-serif font to match target */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--heading);
+}
+
+.resume-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+}
+
+.resume-card {
+    width: 100%;
+    max-width: var(--page-width);
+    background: #fff;
+    color: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* =================================== */
+/* START: REPLACED HEADER STYLES       */
+/* =================================== */
+.resume-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 22px 26px;
+    
+    /* Flexbox for 2-column layout */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* REMOVED: text-align: center; */
+}
+
+/* NEW: Left column (initials + name) */
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+/* NEW: Wrapper for Name + Sub-contact line */
+.header-identity {
+    display: flex;
+    flex-direction: column;
+}
+
+/* NEW: Right column (contact info) */
+.header-right {
+    text-align: right;
+    flex-shrink: 0; /* Prevents this column from shrinking */
+    padding-left: 20px; /* Ensures space */
+}
+
+.profile-image {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%; /* Changed from 8px to 50% for a circle */
+    object-fit: cover;
+    border: 2px solid #fff;
+    margin: 0;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+.profile-initial {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%; /* Changed from 8px to 50% for a circle */
+    background: #374151; /* slate-700 */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    margin-right: 16px;
+    border: 2px solid #fff;
+    flex-shrink: 0;
+}
+.full-name {
+    font-size: 24px; /* UPDATED */
+    font-weight: 700;
+    margin: 0; /* UPDATED */
+    line-height: 1.2;
+}
+
+/* This is for the main right-aligned contact info */
+.contact-line {
+    color: rgba(255,255,255,0.9);
+    font-size: 13px;
+    margin: 0 0 5px 0; /* UPDATED: Stacks them */
+}
+.contact-line:last-child {
+    margin-bottom: 0;
+}
+.contact-line a { 
+    color: rgba(255,255,255,0.95); 
+    text-decoration: none; /* NEW: No underline in header */
+}
+.contact-line a:hover {
+    text-decoration: underline;
+}
+
+/* NEW: This is for the subtle contact line under the name */
+.contact-line-subtle {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    margin: 4px 0 0 0;
+    font-weight: normal;
+}
+/* =================================== */
+/* END: REPLACED HEADER STYLES         */
+/* =================================== */
+
+
+/* Content */
+.resume-content {
+    padding: 20px 26px;
+    background: #ffffff;
+}
+.section { margin-bottom: 14px; }
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    border-bottom: 2px solid var(--accent-border);
+    display: inline-block;
+    padding-bottom: 4px;
+}
+.section-body { font-size: 13px; line-height: 1.4; }
+
+.list { padding-left: 18px; margin: 6px 0; }
+.list-item { margin-bottom: 6px; }
+
+.project-item { margin-bottom: 10px; }
+.project-title { font-weight: 700; margin-bottom: 4px; }
+.project-desc { color: var(--muted); font-size: 13px; }
+.project-url a { color: var(--accent); text-decoration: none; }
+
+.cert-item, .edu-item { margin-bottom: 6px; }
+
+/* =================================== */
+/* NEW: 2-COLUMN SKILLS LIST           */
+/* =================================== */
+.skills-list {
+    list-style: disc; /* Use standard bullets */
+    padding-left: 20px; /* Indent the bullets */
+    margin: 6px 0;
+    
+    /* CSS for 2 columns */
+    column-count: 2;
+    column-gap: 40px;
+}
+
+.skills-list .list-item {
+    /* Prevents a list item from breaking across columns */
+    break-inside: avoid-column;
+}
+/* =H================================= */
+
+/* Print adjustments */
+@media print {
+    body { background: #fff; }
+    .resume-card { box-shadow: none; border: none; }
+    a { color: #000; text-decoration: underline; }
+}
+
+/* Small screen fallback (for browser preview) */
+@media (max-width: 640px) {
+    .resume-header {
+        /* Stack header on small screens */
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-right {
+        text-align: left;
+        padding-left: 0;
+        margin-top: 15px;
+    }
+    .resume-card { margin: 0 6px; }
+    .resume-content { padding: 14px; }
+    .full-name { font-size: 18px; }
+    .skills-list {
+        /* Use a single column on small screens */
+        column-count: 1;
+    }
+}

@@ -1,32 +1,77 @@
-
 {% extends 'base.html' %}
 
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto p-8 bg-white rounded-lg shadow-xl border border-gray-200">
-    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Log In</h1>
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        <div class="space-y-2">
-            <div>
-                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" id="username" name="username" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-        </div>
-        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-            Login
-        </button>
-        <p class="mt-4 text-center text-sm text-gray-600">
-            Don't have an account? 
-            <a href="{% url 'app:signup' %}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                Sign up
+
+<div
+  class="bg-cover bg-gradient-to-br from-[#7337FF] via-[#000000] to-[#0C7EA8]"
+  style="background-image:url(https://res.cloudinary.com/dkt1t22qc/image/upload/v1742348950/Prestataires_Documents/fopt5esl9cgvlcawz1z4.jpg)">
+  
+  <div class="h-screen flex justify-center items-center backdrop-brightness-50">
+    <div class="flex flex-col items-center space-y-8">
+      
+     
+      <div>
+        <h1 class="text-5xl font-bold text-white text-center">MyResume</h1>
+      </div>
+
+      <form method="post" class="w-80">
+        
+        <div
+          class="rounded-[20px] w-full p-8 bg-[#310D84]"
+          style="box-shadow:-6px 3px 20px 4px #0000007d">
+          
+          {% csrf_token %}
+
+          <h1 class="text-white text-3xl font-bold mb-4">Login</h1>
+          
+          <div class="space-y-4">
+
+            <input
+              type="text"
+              placeholder="Username"
+              id="username"
+              name="username"
+              class="bg-[#8777BA] w-full p-2.5 rounded-md placeholder:text-gray-300 shadow-md shadow-blue-950" />
+            
+            <input
+              type="password"
+              placeholder="Password"
+              id="password"
+              name="password"
+              class="bg-[#8777BA] w-full p-2.5 rounded-md placeholder:text-gray-300 shadow-md shadow-blue-950" />
+          </div>
+          
+          <div class="mb-4">
+            <a href="#" class="text-[#228CE0] text-[10px] ml-2 cursor-pointer"
+              >Forget Password?</a
+            >
+          </div>
+          
+          <div class="flex justify-center mb-4">
+
+            <button
+              type="submit"
+              class="h-10 w-full cursor-pointer text-white rounded-md bg-gradient-to-br from-[#7336FF] to-[#3269FF] shadow-md shadow-blue-950">
+              Sign In
+            </button>
+          </div>
+          
+          <div class="text-gray-300 text-center">
+            Don&#x27;t have an account?
+
+            <a
+              href="{% url 'app:signup' %}"
+              class="text-[#228CE0] cursor-pointer">
+              Sign up
             </a>
-        </p>
-    </form>
+          </div>
+        </div>
+      </form>
+      
+    </div>
+  </div>
 </div>
 {% endblock %}
+

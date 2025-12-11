@@ -1,0 +1,214 @@
+/* App-level fallback copy of template4.css */
+@page { size: A4; margin: 14mm; }
+ /* =================================== */
+        /* START: NEW CSS FOR 2-COLUMN LAYOUT  */
+        /* =================================== */
+        @page {
+            size: A4;
+            margin: 0; /* Remove default page margins for full-bleed design */
+        }
+
+        html {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #333;
+            font-size: 10.5pt;
+        }
+
+        /* --- Main Layout Container --- */
+        .resume-container {
+            background-color: rgb(185, 188, 192);
+            display: flex;
+            width: 210mm; /* A4 Width */
+            min-height: 297mm; /* A4 Height */
+            margin: 0 auto; /* Center on screen */
+        }
+
+        /* --- SIDEBAR (LEFT COLUMN) --- */
+        .sidebar {
+            width: 38%; /* Adjust width as needed */
+            background: #008aaa; /* A teal/blue color from the image */
+            color: #ffffff;
+            padding: 2.5cm; /* Use cm for print-like consistency */
+            box-sizing: border-box;
+            position: relative; /* For the pattern */
+        }
+
+        /* Optional: Add the subtle cross-hatch pattern */
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            background-image: 
+                linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff),
+                linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff);
+            background-size: 10px 10px;
+            background-position: 0 0, 5px 5px;
+        }
+
+        .profile-image {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+        .profile-initial {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: #005f7a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            font-weight: 700;
+            margin: 0 auto 20px auto;
+            border: 4px solid #ffffff;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+        
+        .sidebar-title {
+            font-size: 11pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.5);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+
+        .contact-info p {
+            margin: 0 0 8px 0;
+            font-size: 10pt;
+            display: flex;
+            align-items: center;
+        }
+        .contact-info a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        /* Simple list for skills */
+        .sidebar ul {
+            list-style-type: disc;
+            margin: 0;
+            padding-left: 20px;
+            font-size: 10pt;
+        }
+        .sidebar ul li {
+            margin-bottom: 6px;
+        }
+        .sidebar-summary p {
+            font-size: 10pt;
+            line-height: 1.5;
+            margin-top: 0;
+        }
+
+
+        /* --- MAIN CONTENT (RIGHT COLUMN) --- */
+        .main-content {
+            width: 62%;
+            padding: 2.5cm;
+            box-sizing: border-box;
+            color: #1f2937;
+        }
+
+        .main-header {
+            margin-bottom: 24px;
+        }
+        .main-header .full-name {
+            font-size: 32pt;
+            font-weight: 700;
+            color: #008aaa; /* Match sidebar color */
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .main-section {
+            margin-bottom: 24px;
+        }
+
+        .main-title {
+            font-size: 12pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #008aaa; /* Match sidebar color */
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 6px;
+            margin-bottom: 16px;
+        }
+
+        .item {
+            margin-bottom: 16px;
+        }
+        .item-title {
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #111;
+        }
+        .item-meta { /* For dates or subtitles */
+            font-size: 10pt;
+            font-weight: 600;
+            color: #4b5563;
+            margin: 2px 0 8px 0;
+        }
+        .item-body {
+            font-size: 10.5pt;
+            line-height: 1.5;
+        }
+        .item-body ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+         .item-body li {
+            margin-bottom: 5px;
+         }
+
+        /* --- Print Fixes --- */
+        @media print {
+            body {
+                font-size: 10pt; /* Standardize font size for print */
+            }
+            .resume-container {
+                margin: 0;
+                padding: 0;
+                border: none;
+            }
+            .sidebar, .main-content {
+                /* Use exact mm for print padding */
+                padding: 20mm;
+            }
+            .main-header .full-name {
+                font-size: 30pt;
+            }
+        }
+        /* =================================== */
+        /* END: NEW CSS FOR 2-COLUMN LAYOUT    */
+        /* =================================== */
+@media print { .container { padding:10mm; } }
+
+/* PDF / print helpers (template1-alike) */
+@page { size: A4; margin: 8mm; }
+html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+.container { box-sizing: border-box; }
+@media print { .container { padding: 8mm !important; } }

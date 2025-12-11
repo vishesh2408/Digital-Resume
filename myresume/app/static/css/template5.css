@@ -1,0 +1,217 @@
+/* Semantic template5 CSS for browser and WeasyPrint */
+@page { size: A4; margin: 12mm; }
+   /* =================================== */
+        /* START: PDF-LIKE 2-COLUMN LAYOUT     */
+        /* (Target Image: image_cff6e2.png)    */
+        /* =================================== */
+        @page { 
+            size: A4; 
+            margin: 1.5cm; /* Standard PDF margin */
+        }
+        
+        html, body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+            background: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #333;
+            font-size: 10.5pt; /* Base font size */
+            line-height: 1.45;
+            position: relative;
+        }
+
+        /* --- Full-width header bar --- */
+        .header-bar {
+            /* Positioned at the top of the page margin */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: #008aaa; /* Teal color from image */
+        }
+
+        /* --- Main Layout Container --- */
+        .resume-wrapper {
+            width: 100%;
+            max-width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            margin: 0 auto;
+            display: flex;
+            gap: 24px; /* Space between columns */
+            padding-top: 20px; /* Space below the header bar */
+        }
+
+        /* --- MAIN CONTENT (LEFT COLUMN) --- */
+        .main-content {
+            width: 65%;
+            flex-shrink: 0;
+        }
+
+        /* --- SIDEBAR (RIGHT COLUMN) --- */
+        .sidebar {
+            width: 35%;
+            flex-shrink: 0;
+            padding-top: 10px;
+        }
+        
+        /* --- Profile Image (in sidebar) --- */
+        .profile-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px; /* Rounded square */
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+        .profile-initial {
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            height: 0;
+            position: relative;
+            border-radius: 8px;
+            background: #e5e7eb; /* gray-200 */
+            margin-bottom: 20px;
+        }
+        .profile-initial-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            font-weight: 700;
+            color: #4b5563;
+        }
+        
+        .sidebar .section {
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title {
+            font-size: 11pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            border-bottom: 1.5px solid #d1d5db; /* Gray border */
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        /* Contact Info Section (in sidebar) */
+        .contact-section p {
+            margin: 0 0 6px 0;
+            font-size: 10pt;
+            font-weight: 500;
+        }
+        .contact-section a {
+            color: #374151;
+            text-decoration: none;
+        }
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+
+        /* Skills List (in sidebar) */
+        .skills-list {
+            list-style: disc; /* Target has bullets */
+            margin: 0;
+            padding-left: 18px;
+            font-size: 10pt;
+        }
+        .skills-list li {
+            margin-bottom: 5px;
+        }
+
+        /* --- MAIN CONTENT STYLES --- */
+        .main-header {
+            margin-bottom: 16px;
+        }
+        .main-header .full-name {
+            font-size: 32pt; /* Large name */
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .main-content .section {
+            margin-bottom: 20px;
+        }
+        
+        .main-title {
+            font-size: 13pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            /* Underline style from target image */
+            border-bottom: 1.5px solid #008aaa; /* Teal color */
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+        }
+
+        .summary-body {
+            font-size: 10.5pt;
+        }
+        
+        .experience-item {
+            margin-bottom: 16px;
+        }
+        .experience-title {
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #111;
+        }
+        .experience-meta { /* For dates or subtitles */
+            font-size: 10pt;
+            font-weight: 600; /* Bolder than italic */
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+        .experience-desc {
+            font-size: 10.5pt;
+        }
+        .experience-desc ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+         .experience-desc li {
+            margin-bottom: 5px;
+         }
+
+        /* Education (in main) */
+        .edu-item {
+            margin-bottom: 16px;
+        }
+        .edu-item .degree {
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #111;
+        }
+        .edu-item .institution {
+            font-size: 10.5pt;
+            font-weight: 600; /* Bolder */
+            color: #4b5563;
+        }
+
+        /* --- Print Fixes --- */
+        @media print {
+            body, .resume-wrapper {
+                margin: 0;
+                padding: 0;
+            }
+            .header-bar {
+                position: absolute; /* Use absolute for print */
+            }
+            .resume-wrapper {
+                padding-top: 10px;
+            }
+        }
+        /* =================================== */
+        /* END: NEW CSS FOR 2-COLUMN LAYOUT    */
+        /* =================================== */
+
+@media print { .resume-card { box-shadow:none; border: none; } a { color: #000; text-decoration: underline; } }
+
+

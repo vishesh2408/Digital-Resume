@@ -1,0 +1,40 @@
+/* Styles for template1: plain CSS (matches inline styles in template1.html) */
+@page { size: A4; margin: 20mm; }
+html, body { font-family: 'Times New Roman', Times, serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.resume-page { max-width: 780px; margin: 0 auto; background: #fff; padding: 8px; box-sizing: border-box; }
+.resume-header { display: table; width: 100%; table-layout: fixed; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+.resume-left, .resume-right { display: table-cell; vertical-align: top; }
+.resume-left { width: 65%; }
+.resume-right { width: 35%; text-align: right; padding-left: 12px; }
+h1.name { margin: 0; font-size: 28px; color: #0b3d91; font-weight: 700; }
+.contact-line { font-size: 12px; margin-top: 6px; }
+.contact-line a { color: #0b3d91; text-decoration: underline; }
+
+.section { margin-bottom: 12px; }
+.section .section-title { font-size: 12px; color: #0b3d91; text-transform: uppercase; letter-spacing: .06em; margin: 6px 0; font-weight: 700; }
+.section .section-body { font-size: 13px; color: #111; line-height: 1.25; }
+
+ul.plain { margin: 4px 0 0 18px; padding: 0; }
+ul.plain li { margin-bottom: 4px; }
+
+.item { margin-bottom: 8px; }
+.item .title { font-weight: 700; font-size: 13px; }
+.item .meta { font-size: 12px; color: #444; margin-top: 2px; }
+
+.edu-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.edu-left { flex: 1; }
+.edu-right { margin-left: 12px; white-space: nowrap; text-align: right; color: #444; font-size: 12px; }
+
+a { color: #0b3d91; }
+
+.resume-page-inner { padding-top: 8px; }
+
+/* Section separators to approximate the sample image */
+.section { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e6e6e6; }
+.section:last-of-type { border-bottom: none; }
+.section .section-title { display: inline-block; padding-bottom: 2px; }
+
+@media print {
+    .resume-page { padding: 0; margin: 0; }
+    body { background: #fff; }
+}

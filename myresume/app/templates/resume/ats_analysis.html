@@ -1,0 +1,511 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="max-w-6xl mx-auto text-gray-700">
+  <style>
+    /* Small local styles for animations and skeletons */
+    .card { transform: translateY(8px); opacity: 0; transition: transform .45s ease, opacity .45s ease; }
+    .card.enter { transform: translateY(0); opacity: 1; }
+    .chart-loader { backdrop-filter: blur(2px); }
+    .collapse-body { transition: max-height .28s ease, opacity .28s ease; overflow: hidden; }
+    .collapse-body.hidden { max-height: 0; opacity: 0; }
+    .collapse-body.open { max-height: 800px; opacity: 1; }
+    /* tiny helper for control buttons */
+    .control-btn { padding: .25rem .5rem; border-radius: .375rem; font-size: .75rem; }
+  </style>
+  <div class="mb-6 bg-gradient-to-r from-indigo-600 to-teal-500 text-white rounded-xl p-6 shadow">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold">ATS Analysis Dashboard</h1>
+        <p class="text-white/90 mt-1 text-sm md:text-base">Analyze your resume quality, compare against a job description, and get actionable improvements.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 text-white text-xs">Real-time Charts</span>
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 text-white text-xs">Responsive</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="p-4 border rounded-xl bg-white shadow relative">
+      <div id="loader-saved" class="hidden absolute inset-0 bg-white/70 flex items-center justify-center rounded">
+        <div class="h-8 w-8 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+      <h2 class="font-semibold mb-2 text-gray-900">Analyze My Saved Resume</h2>
+      <form method="post" class="space-y-3" onsubmit="document.getElementById('loader-saved').classList.remove('hidden')">
+        {% csrf_token %}
+        <label class="block text-sm text-gray-700">Select Resume</label>
+        <select name="resume_pk" class="border rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="">-- choose --</option>
+          {% for r in resumes %}
+            <option value="{{ r.pk }}" {% if selected_pk == r.pk %}selected{% endif %}>{{ r.full_name }} ({{ r.updated_at|date:'Y-m-d' }})</option>
+          {% endfor %}
+        </select>
+        <label class="block text-sm mt-2 text-gray-700">Paste Job Description (optional)</label>
+        <textarea name="job_description" rows="6" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Paste JD text here...">{{ posted_jd_text }}</textarea>
+        <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-md" type="submit">Analyze</button>
+      </form>
+    </div>
+
+    <div class="p-4 border rounded-xl bg-white shadow relative">
+      <div id="loader-upload" class="hidden absolute inset-0 bg-white/70 flex items-center justify-center rounded">
+        <div class="h-8 w-8 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+      <h2 class="font-semibold mb-2 text-gray-900">Analyze Uploaded Resume (+ optional Job Description)</h2>
+      <form method="post" enctype="multipart/form-data" class="space-y-3" onsubmit="document.getElementById('loader-upload').classList.remove('hidden')">
+        {% csrf_token %}
+        <label class="block text-sm text-gray-700">Resume file (.pdf, .docx, .txt)</label>
+        <input type="file" name="upload" accept=".pdf,.docx,.txt" class="block w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <label class="block text-sm text-gray-700">Job Description file (optional) (.pdf, .docx, .txt)</label>
+        <input type="file" name="jd_upload" accept=".pdf,.docx,.txt" class="block w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-md" type="submit">Analyze Upload</button>
+      </form>
+      <p class="text-xs text-gray-500 mt-2">You can compare your resume against a JD to see keyword coverage.</p>
+    </div>
+  </div>
+
+  <!-- AI analysis results (populated by FastAPI response) -->
+  <div id="ai-results" class="max-w-6xl mx-auto mt-6"></div>
+
+  {% if analysis %}
+    {% if analysis.error %}
+      <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded">{{ analysis.error }}</div>
+    {% else %}
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 p-4 border rounded-xl bg-white shadow">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-900">Scores</h3>
+            <span class="text-xs text-gray-500">Higher is better</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3 border rounded-lg">
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center justify-center chart-loader hidden" id="loader-score">
+                  <div class="h-8 w-8 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                </div>
+                <canvas id="scoreChart" height="140"></canvas>
+              </div>
+            </div>
+         <div class="p-3 border rounded-lg relative">
+    <!-- 
+        REMOVED: inset-0 flex items-center justify-center
+        ADDED: top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+        This is the most reliable way to center an absolute element precisely 
+        over the canvas, overriding any Chart.js layout issues.
+    -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+        <!-- The data-score attribute is crucial for JavaScript to read the value -->
+        <span class="text-2xl font-bold text-gray-700" id="score-text" data-score="{{ analysis.overall_score|default:'0' }}">
+            {{ analysis.overall_score|default:'0' }}%
+        </span>
+    </div>
+    <!-- Removed h-full w-full as it's no longer necessary with the translate centering method -->
+    <div class="relative">
+        <div class="absolute inset-0 flex items-center justify-center chart-loader hidden" id="loader-overall">
+            <div class="h-8 w-8 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        </div>
+        <!-- The canvas requires a height and the ID for Chart.js to target it -->
+        <canvas id="overallChart" height="140"></canvas>
+    </div>
+</div>
+</div>
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+            <div class="p-3 border rounded-lg">
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center justify-center chart-loader hidden" id="loader-radar">
+                  <div class="h-8 w-8 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                </div>
+                <canvas id="radarChart" height="160"></canvas>
+              </div>
+            </div>
+            <div class="p-3 border rounded-lg">
+              <ul class="text-sm space-y-1 text-gray-700">
+                <li><strong>Length:</strong> {{ analysis.scores.length }}%</li>
+                <li><strong>Action Verbs:</strong> {{ analysis.scores.action_verbs }}%</li>
+                <li><strong>Quantification:</strong> {{ analysis.scores.quantification }}%</li>
+                <li><strong>Contact Info:</strong> {{ analysis.scores.contact_info }}%</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 border rounded-xl bg-white shadow  text-gray-700">
+          <h3 class="font-semibold mb-3 text-gray-900">Highlights</h3>
+          <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+            <div class="p-3 rounded-lg bg-indigo-50 text-indigo-700">
+              <div class="text-xs">Words</div>
+              <div class="font-semibold text-lg">{{ analysis.text_length_words }}</div>
+            </div>
+            <div class="p-3 rounded-lg bg-teal-50 text-teal-700">
+              <div class="text-xs">Unique Verbs</div>
+              <div class="font-semibold text-lg">{{ analysis.unique_action_verbs|length }}</div>
+            </div>
+            <div class="p-3 rounded-lg bg-amber-50 text-amber-700">
+              <div class="text-xs">Quantifications</div>
+              <div class="font-semibold text-lg">{{ analysis.quantifications|length }}</div>
+            </div>
+            <div class="p-3 rounded-lg bg-gray-50 text-gray-700">
+              <div class="text-xs">Contacts</div>
+              <div class="font-semibold text-lg">E: {{ analysis.email_found }} • P: {{ analysis.phone_found }}</div>
+            </div>
+          </div>
+          <p class="text-sm font-medium text-gray-900">Unique action verbs ({{ analysis.unique_action_verbs|length }}):</p>
+          <div class="text-xs text-gray-700 break-words">{{ analysis.unique_action_verbs|join:', ' }}</div>
+          <p class="text-sm mt-2 font-medium text-gray-900">Quantifications ({{ analysis.quantifications|length }}):</p>
+          <div class="text-xs text-gray-700 break-words">{{ analysis.quantifications|join:', ' }}</div>
+          {% if analysis.overused_terms %}
+            <p class="text-sm mt-2 font-medium text-gray-900">Overused terms:</p>
+            <div class="text-xs text-gray-700 break-words">{{ analysis.overused_terms|join:', ' }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="p-4 border rounded-xl bg-white shadow card">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold mb-3">High Priority Improvements</h3>
+            <button class="toggle-btn control-btn" data-target="high-list">Hide</button>
+          </div>
+          <div id="high-list" class="collapse-body open">
+            <ul class="list-disc ml-5 space-y-2">
+              {% for s in analysis.improvements.high_priority %}
+                <li class="text-sm">{{ s }}</li>
+              {% empty %}
+                <li class="text-sm text-gray-500">No high priority issues detected.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="p-4 border rounded-xl bg-white shadow card text-gray-700">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold mb-3">Medium Priority</h3>
+            <button class="toggle-btn control-btn" data-target="med-list">Hide</button>
+          </div>
+          <div id="med-list" class="collapse-body open">
+            <ul class="list-disc ml-5 space-y-2">
+              {% for s in analysis.improvements.medium_priority %}
+                <li class="text-sm">{{ s }}</li>
+              {% empty %}
+                <li class="text-sm text-gray-500">No medium priority items.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="p-4 border rounded-xl bg-white shadow card text-gray-700">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold mb-3">Additional Suggestions</h3>
+            <button class="toggle-btn control-btn" data-target="add-list">Hide</button>
+          </div>
+          <div id="add-list" class="collapse-body open">
+            <ul class="list-disc ml-5 space-y-2">
+              {% for s in analysis.improvements.additional %}
+                <li class="text-sm">{{ s }}</li>
+              {% empty %}
+                <li class="text-sm text-gray-500">You're in good shape. Tailor to JD for better alignment.</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="mt-4">
+            <button id="copySuggestionsBtn" class="px-3 py-2 text-sm bg-gray-800 hover:bg-black text-white rounded-md">Copy All Suggestions</button>
+            <span id="copyStatus" class="ml-2 text-xs text-gray-500 hidden">Copied!</span>
+          </div>
+        </div>
+      </div>
+
+      {% if analysis.jd_match %}
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 text-gray-700">
+        <div class="lg:col-span-2 p-4 border rounded-xl bg-white shadow">
+          <h3 class="font-semibold mb-3">JD Coverage</h3>
+          <canvas id="jdChart" height="140"></canvas>
+          <p class="mt-3 text-sm">
+            <strong>Coverage:</strong> {{ analysis.jd_match.coverage_pct }}% of JD keywords matched ({{ analysis.jd_match.jd_keywords_count }} JD keywords)
+          </p>
+          {% if analysis.jd_match.similarity_pct is not None %}
+          <p class="text-sm"><strong>Similarity (cosine):</strong> {{ analysis.jd_match.similarity_pct }}%</p>
+          {% endif %}
+          <div class="mt-4 p-3 border rounded-lg">
+            <canvas id="jdBarChart" height="120"></canvas>
+          </div>
+        </div>
+        <div class="p-4 border rounded-xl bg-white shadow">
+          <h3 class="font-semibold mb-3">JD Keywords</h3>
+          <p class="text-sm"><strong>Matched:</strong></p>
+          <div class="text-xs text-gray-700 break-words">{{ analysis.jd_match.matched_keywords|join:', ' }}</div>
+          <p class="text-sm mt-2"><strong>Missing:</strong></p>
+          <div class="text-xs text-gray-700 break-words">{{ analysis.jd_match.missing_keywords|join:', ' }}</div>
+        </div>
+      </div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+</div>
+
+{% if analysis %}{{ analysis|json_script:'analysis-json' }}{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function(){
+    const data = (function(){
+      const el = document.getElementById('analysis-json');
+      if (!el) return {};
+      try { return JSON.parse(el.textContent); } catch(e) { return {}; }
+    })();
+    if(!data.scores) return;
+    const ctx = document.getElementById('scoreChart');
+    window.resumeCharts = window.resumeCharts || {};
+    window.resumeCharts.score = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Length','Action Verbs','Quantification','Contact Info'],
+        datasets: [{
+          label: 'Score %',
+          data: [data.scores.length, data.scores.action_verbs, data.scores.quantification, data.scores.contact_info],
+          backgroundColor: ['#6366F1','#10B981','#F59E0B','#3B82F6']
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        }
+      }
+    });
+
+    const overallCtx = document.getElementById('overallChart');
+    if (overallCtx && typeof data.overall_score !== 'undefined') {
+      window.resumeCharts.overall = new Chart(overallCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Score','Remaining'],
+          datasets: [{
+            data: [data.overall_score, Math.max(0, 100 - data.overall_score)],
+            backgroundColor: ['#14B8A6','#E5E7EB'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: '70%',
+          plugins: { legend: { display: false } },
+          responsive: true
+        }
+      });
+    }
+
+    const radarCtx = document.getElementById('radarChart');
+    if (radarCtx) {
+      window.resumeCharts.radar = new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+          labels: ['Length','Action Verbs','Quantification','Contact Info'],
+          datasets: [{
+            label: 'Score %',
+            data: [data.scores.length, data.scores.action_verbs, data.scores.quantification, data.scores.contact_info],
+            backgroundColor: 'rgba(99,102,241,0.2)',
+            borderColor: '#6366F1',
+            pointBackgroundColor: '#6366F1'
+          }]
+        },
+        options: {
+          scales: { r: { beginAtZero: true, max: 100 } },
+          plugins: { legend: { display: false } },
+          responsive: true
+        }
+      });
+    }
+
+    if (data.jd_match) {
+      const jctx = document.getElementById('jdChart');
+      if (jctx) {
+        window.resumeCharts.jd = new Chart(jctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Matched','Missing'],
+            datasets: [{
+              data: [data.jd_match.coverage_pct, Math.max(0, 100 - data.jd_match.coverage_pct)],
+              backgroundColor: ['#10B981','#EF4444']
+            }]
+          },
+          options: { responsive: true }
+        });
+      }
+
+      const jbctx = document.getElementById('jdBarChart');
+      if (jbctx && typeof data.jd_match.jd_keywords_count !== 'undefined') {
+        const total = Math.max(0, data.jd_match.jd_keywords_count || 0);
+        const matchedCount = Math.round((data.jd_match.coverage_pct / 100) * total);
+        const missingCount = Math.max(0, total - matchedCount);
+        window.resumeCharts.jdBar = new Chart(jbctx, {
+          type: 'bar',
+          data: {
+            labels: ['Matched','Missing'],
+            datasets: [{
+              label: 'Keywords',
+              data: [matchedCount, missingCount],
+              backgroundColor: ['#10B981','#EF4444']
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+    }
+
+    const copyBtn = document.getElementById('copySuggestionsBtn');
+    if (copyBtn && data.improvements) {
+      copyBtn.addEventListener('click', function(){
+        const all = [];
+        if (Array.isArray(data.improvements.high_priority)) all.push(...data.improvements.high_priority);
+        if (Array.isArray(data.improvements.medium_priority)) all.push(...data.improvements.medium_priority);
+        if (Array.isArray(data.improvements.additional)) all.push(...data.improvements.additional);
+        const text = all.join('\n');
+        navigator.clipboard.writeText(text).then(function(){
+          const s = document.getElementById('copyStatus');
+          if (s) { s.classList.remove('hidden'); setTimeout(()=>s.classList.add('hidden'), 1500); }
+        });
+      });
+    }
+  })();
+</script>
+<script>
+  // UI polish: animate cards, collapsible lists, and refresh charts
+  (function(){
+    function q(sel, root=document) { return Array.from(root.querySelectorAll(sel)); }
+
+    // add 'card' class to top-level panels for entrance animation
+    q('.p-4.border.rounded-xl.bg-white.shadow').forEach(el=>{ if (!el.classList.contains('card')) el.classList.add('card'); });
+
+    // staggered entrance when DOM ready
+    document.addEventListener('DOMContentLoaded', function(){
+      const cards = q('.card');
+      cards.forEach((c,i)=> setTimeout(()=> c.classList.add('enter'), 80*i));
+    });
+
+    // Collapse toggles
+    q('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const id = btn.getAttribute('data-target');
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isOpen = el.classList.contains('open');
+        if (isOpen) {
+          el.classList.remove('open'); el.classList.add('hidden'); btn.textContent = 'Show';
+        } else {
+          el.classList.remove('hidden'); el.classList.add('open'); btn.textContent = 'Hide';
+        }
+      });
+    });
+
+    // Refresh analytics charts from embedded JSON
+    const refreshBtn = document.getElementById('refreshAnalyticsBtn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', async function(){
+        const showLoaders = ['loader-score','loader-overall','loader-radar'];
+        showLoaders.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('hidden'); });
+        try {
+          const el = document.getElementById('analysis-json');
+          if (!el) return;
+          const data = JSON.parse(el.textContent || '{}');
+          // update score chart
+          if (window.resumeCharts && window.resumeCharts.score) {
+            const c = window.resumeCharts.score;
+            c.data.datasets[0].data = [data.scores.length||0, data.scores.action_verbs||0, data.scores.quantification||0, data.scores.contact_info||0];
+            c.update();
+          }
+          // overall
+          if (window.resumeCharts && window.resumeCharts.overall) {
+            const c = window.resumeCharts.overall;
+            c.data.datasets[0].data = [data.overall_score||0, Math.max(0,100-(data.overall_score||0))];
+            c.update();
+          }
+          // radar
+          if (window.resumeCharts && window.resumeCharts.radar) {
+            const c = window.resumeCharts.radar;
+            c.data.datasets[0].data = [data.scores.length||0, data.scores.action_verbs||0, data.scores.quantification||0, data.scores.contact_info||0];
+            c.update();
+          }
+          // JD charts
+          if (window.resumeCharts && window.resumeCharts.jd) { window.resumeCharts.jd.update(); }
+          if (window.resumeCharts && window.resumeCharts.jdBar) { window.resumeCharts.jdBar.update(); }
+
+          const stamp = new Date().toLocaleTimeString();
+          const notice = document.getElementById('analyticsUpdated');
+          if (notice) { notice.textContent = 'Refreshed ' + stamp; setTimeout(()=>{ notice.textContent='Refreshed'; }, 3000); }
+        } catch (e) {
+          console.warn('Refresh failed', e);
+        } finally {
+          showLoaders.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('hidden'); });
+        }
+      });
+    }
+  })();
+</script>
+<script>
+  // Intercept existing upload form and send to FastAPI AI service
+  (function(){
+    const apiUrl = 'http://127.0.0.1:8001/analyze';
+    const uploadForm = document.querySelector('form[enctype="multipart/form-data"]');
+    const uploadLoader = document.getElementById('loader-upload');
+    const resultsContainer = document.getElementById('ai-results');
+
+    function setLoading(on){
+      if(uploadLoader) uploadLoader.classList.toggle('hidden', !on);
+    }
+
+    async function submitToAI(form){
+      const fd = new FormData(form);
+      setLoading(true);
+      try{
+        const res = await fetch(apiUrl, { method: 'POST', body: fd });
+        if(!res.ok) throw new Error('AI service error');
+        const json = await res.json();
+        renderAIResults(json);
+      }catch(err){
+        console.error(err);
+        alert('AI analysis failed — make sure the AI service is running at http://127.0.0.1:8001');
+      }finally{
+        setLoading(false);
+      }
+    }
+
+    function renderAIResults(data){
+      if(!resultsContainer) return;
+      resultsContainer.innerHTML = `
+        <div class="p-4 bg-white border rounded-lg shadow">
+          <h4 class="font-semibold mb-2">AI Analysis Results</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="p-3 bg-gray-50 rounded"><div class="text-sm text-gray-500">Keyword Match</div><div class="text-2xl font-bold">${data.keyword_match_pct}%</div></div>
+            <div class="p-3 bg-gray-50 rounded"><div class="text-sm text-gray-500">TF-IDF Similarity</div><div class="text-2xl font-bold">${data.tfidf_similarity_pct}%</div></div>
+            <div class="p-3 bg-gray-50 rounded"><div class="text-sm text-gray-500">Combined</div><div class="text-2xl font-bold text-green-600">${data.combined_score_pct}%</div></div>
+          </div>
+          <div class="mt-3">
+            <h5 class="font-medium">Missing keywords</h5>
+            <div class="text-sm text-gray-700 mt-2">${(data.missing_keywords && data.missing_keywords.length) ? data.missing_keywords.join(', ') : 'None'}</div>
+          </div>
+        </div>
+      `;
+
+      // Update score text if present
+      const scoreText = document.getElementById('score-text');
+      if(scoreText){ scoreText.textContent = Math.round(data.combined_score_pct) + '%'; }
+
+      // Update charts if available
+      try{
+        if(window.resumeCharts && window.resumeCharts.score){
+          const c = window.resumeCharts.score;
+          // set a simple distribution: combined, keyword, tfidf, contact (dummy)
+          c.data.datasets[0].data = [Math.round(data.combined_score_pct), Math.round(data.keyword_match_pct), Math.round(data.tfidf_similarity_pct), 0];
+          c.update();
+        }
+      }catch(e){ console.warn(e); }
+    }
+
+    if(uploadForm){
+      uploadForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        submitToAI(uploadForm);
+      });
+    }
+  })();
+</script>
+{% endblock %}
+

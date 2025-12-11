@@ -1,0 +1,166 @@
+/* =================================================================== */
+/* PDF PRINT STYLES for template1.html
+/* =================================================================== */
+
+/* --- Page Setup --- */
+@page {
+  size: A4;
+  /* Reduced top/bottom margin to give more printable area and avoid spilling to a second page. */
+  margin: 8mm;
+}
+
+/* --- Body & Base Styles --- */
+body {
+  /* Base font from your template's inline style */
+  font-family: 'Times New Roman', Georgia, serif;
+  
+  /* Base color from your template's inline style */
+  color: #111;
+  
+  /* Base font size (matches 'text-sm' or 14px) */
+  font-size: 14px;
+  
+  /* Base line height from 'summary' section */
+  line-height: 1.25;
+  
+  /* Ensure background colors and text colors are printed */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
+  
+  background: white;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Avoid Page Breaks --- */
+/* Prevent sections, headers, and list items from splitting across pages */
+section, header, div, ul, li {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* --- Header & Contact Info --- */
+header {
+  /* Replicates .border-b .pb-3 .mb-4 but slimmed for PDF */
+  margin-bottom: 10px; /* reduced */
+  padding-bottom: 8px; /* reduced */
+  border-bottom: 1px solid #0d0d0e; /* Tailwind gray-200 */
+  margin-top: 0;
+  padding-top: 0;
+  margin-right: 40px;
+}
+
+/* H1 (Name) */
+/* Replicates .text-3xl .font-extrabold .text-[#0b3d91] and inline style */
+h1 {
+  font-size: 28px !important;
+  font-weight: 800 !important; /* font-extrabold */
+  color: #0b3d91 !important;
+  margin: 0;
+}
+
+/* Contact Info Container */
+/* Replicates .flex .justify-between .items-start .mt-4 */
+header > div:nth-of-type(2) {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-top: 8px !important; /* reduced */
+  font-size: 14px; /* text-sm */
+}
+
+/* Right-side Contact Column */
+/* Replicates .text-right and inline style min-width:220px */
+header > div:nth-of-type(2) > div:nth-of-type(2) {
+  text-align: right !important;
+  min-width: 220px !important;
+}
+
+/* Left-side Contact Column */
+header > div:nth-of-type(2) > div:nth-of-type(1) {
+  text-align: left !important;
+}
+
+/* Replicates space-y-1 for contact items */
+.space-y-1 > * + * {
+  margin-top: 4px !important; /* 0.25rem */
+}
+
+/* --- Links --- */
+a {
+  color: inherit !important; /* Inherit the #111 body color */
+  text-decoration: underline !important;
+  word-wrap: break-word; /* Replicates break-words */
+}
+
+/* Special color for Project URLs */
+/* Replicates .text-blue-700 */
+.text-blue-700 a {
+  color: #1D4ED8 !important; /* Tailwind blue-700 */
+}
+
+/* --- Section Styles --- */
+section {
+  /* Replicates .mb-4 on most sections */
+  margin-bottom: 16px;
+}
+section.mb-2 {
+  /* Replicates .mb-2 on Education */
+  margin-bottom: 8px;
+}
+
+/* H3 (Section Titles) */
+/* Replicates .text-sm .font-semibold .text-[#0b3d91] .uppercase .tracking-wider .mb-1 */
+h3 {
+  font-size: 14px !important; /* text-sm */
+  font-weight: 600 !important; /* font-semibold */
+  color: #0b3d91 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important; /* tracking-wider */
+  margin-bottom: 4px !important; /* mb-1 */
+  margin-top: 0;
+}
+
+/* --- Content Styles --- */
+
+/* Skills List */
+/* Replicates .list-disc .pl-5 */
+ul.list-disc {
+  list-style-type: disc !important;
+  padding-left: 20px !important; /* pl-5 */
+  margin: 0;
+}
+ul.list-disc li {
+   font-size: 14px; /* text-sm */
+}
+
+/* Generic text classes from template */
+.text-sm {
+  font-size: 14px !important;
+}
+.text-xs {
+  font-size: 12px !important;
+}
+.font-semibold {
+  font-weight: 600 !important;
+}
+.text-gray-700 {
+  color: #374151 !important;
+}
+
+/* Replicates .mb-1 and .mb-2 for item spacing */
+.mb-1 { margin-bottom: 4px !important; }
+.mb-2 { margin-bottom: 8px !important; }
+
+/* --- Remove Web-Only Styles --- */
+/* Remove shadows and rounded corners for a clean PDF */
+.shadow, .shadow-md, .shadow-2xl, .rounded, .rounded-lg {
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Force flex display, as it can fail in some PDF renderers */
+.flex {
+  display: flex !important;
+}

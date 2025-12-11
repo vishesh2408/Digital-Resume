@@ -1,0 +1,15 @@
+/* Template 6 - DevOps/SRE themed (emerald header) - PDF-friendly rules */
+@page { size: A4; margin: 8mm; }
+body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:#0b1220; background:#ffffff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.max-w-4xl { max-width:900px; margin:0 auto; }
+header.bg-emerald-700 { background:#047857; color:#ffffff; }
+header h1 { color:#fff; margin:0; }
+header p { color:#d1fae5; margin:0; }
+.p-8 { padding:20px; }
+.section-title { font-weight:700; color:#0f172a; margin-bottom:6px; border-bottom:2px solid #10b981; padding-bottom:4px; }
+.prose { color:#0b1220; line-height:1.45; }
+.prose ul { padding-left:18px; }
+
+/* Container / print helpers */
+.max-w-4xl { box-sizing: border-box; padding: 8px; }
+@media print { .max-w-4xl { box-shadow:none !important; border:0 !important; padding: 8px !important; } }

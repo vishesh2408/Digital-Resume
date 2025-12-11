@@ -1,0 +1,286 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resume - {{ resume.full_name }}{% endblock %}
+
+{% block content %}
+    <style>
+        @page { 
+            size: A4; 
+            margin: 1.5cm; /* Standard PDF margin */
+        }
+        
+
+
+        
+
+        .resume-card {
+            width: 100%;
+            max-width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            margin: 0 auto;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* --- HEADER (Name, Address, Contact) --- */
+        .resume-header {
+            padding: 1.5cm 1.5cm 1cm 1.5cm;
+            text-align: left;
+        }
+        
+        .header-main .full-name {
+            font-size: 28pt;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            line-height: 1.1;
+        }
+        
+        .header-main .address {
+            font-size: 11pt;
+            color: #4b5563;
+            margin: 5px 0 0 0;
+        }
+
+        .contact-bar {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            gap: 15px;
+            margin-top: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1.5px solid #d1d5db;
+        }
+        
+        .contact-item {
+            font-size: 10pt;
+            color: #374151;
+            font-weight: 500;
+        }
+        .contact-item a {
+            color: #374151;
+            text-decoration: none;
+        }
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+        /* Simple text prefix instead of icons for reliability */
+        .contact-item .icon-prefix {
+            font-weight: 600;
+            color: #111;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .resume-content {
+            padding: 0 1.5cm 1.5cm 1.5cm;
+            color: #111;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 12pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            border-bottom: 1.5px solid #d1d5db; /* Gray border */
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+        }
+
+        .section-body {
+            font-size: 10.5pt;
+        }
+        
+        /* --- Item layout (for Project, Education, etc.) --- */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .item-left {
+            flex: 1; /* Takes up available space */
+            padding-right: 15px;
+        }
+        
+        .item-right {
+            flex-shrink: 0; /* Prevents shrinking */
+            text-align: right;
+            font-weight: 600;
+            color: #374151;
+            font-size: 10pt;
+        }
+
+        .item-title {
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #111;
+        }
+        
+        .item-subtitle {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: #4b5563;
+            margin: 2px 0 6px 0;
+        }
+        
+        .item-body ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 8px 0 0 0;
+           
+        }
+         .item-body li {
+            margin-bottom: 5px;
+         }
+
+        /* Skills List */
+        .skills-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            /* Create 2 columns */
+            column-count: 2;
+            column-gap: 20px;
+        }
+        .skills-list li {
+            margin-bottom: 6px;
+        }
+
+        /* Summary Section */
+        .summary .section-body {
+            line-height: 1.5;
+        }
+
+        /* --- Print Fixes --- */
+        @media print {
+            body {
+                font-size: 10pt;
+            }
+            .resume-card {
+                border: none;
+                box-shadow: none;
+            }
+            .resume-header, .resume-content {
+                padding: 0;
+            }
+        }
+    </style>
+
+    <div class="resume-wrapper" >
+        <div class="resume-card" style="padding: 20px; background: #f0f1b1;">
+            
+            <!-- NEW HEADER STRUCTURE -->
+            <header class="resume-header">
+                <div class="header-main">
+                    <h1 class="full-name">{{ resume.full_name }}</h1>
+                    <!-- <p class="address"> {{ resume.location }}</p> Add address field or static text -->
+                </div>
+                <div class="contact-bar">
+                    <span class="contact-item">
+                        <span class="icon-prefix">Phone:</span> {{ resume.phone }}
+                    </span>
+                    <span class="contact-item">
+                        <span class="icon-prefix">Email:</span> <a href="mailto:{{ resume.email }}">{{ resume.email }}</a>
+                    </span>
+                    {% if resume.linkedin %}
+                    <span class="contact-item">
+                        <span class="icon-prefix">LinkedIn:</span> <a href="{{ resume.linkedin }}" target="_blank" rel="noopener">{{ resume.linkedin }}</a>
+                    </span>
+                    {% endif %}
+                    {% if resume.github %}
+                    <span class="contact-item">
+                        <span class="icon-prefix">GitHub:</span> <a href="{{ resume.github }}" target="_blank" rel="noopener">{{ resume.github }}</a>
+                    </span>
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="resume-content" >
+                
+                <!-- SUMMARY -->
+                {% if render_summary or resume.summary %}
+                <section class="section summary">
+                    <!-- No title for summary in this design -->
+                    <div class="section-body">{{ render_summary|default:resume.summary|safe }}</div>
+                </section>
+                {% endif %}
+
+                <!-- PROJECTS (Replaces "Training" from image) -->
+                <section class="section projects">
+                    <h2 class="section-title">Projects</h2>
+                    {% if resume.project_items.exists %}
+                        {% for p in resume.project_items.all %}
+                        <div class="item-row">
+                            <div class="item-left">
+                                <div class="item-title">{{ p.name }}</div>
+                                <!-- <div class="item-subtitle">Project Subtitle or Tech Stack</div> -->
+                                <div class="item-body">{{ p.description|safe }}</div>
+                            </div>
+                            <div class="item-right">
+                                Feb' 24 - Apr' 24 <!-- Add 'date' field to your model -->
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </section>
+
+                <!-- CERTIFICATES -->
+                {% if resume.certification_items.exists %}
+                <section class="section certificates">
+                    <h2 class="section-title">Certificates</h2>
+                    {% for c in resume.certification_items.all %}
+                    <div class="item-row">
+                        <div class="item-left">
+                            <div class="item-title">{{ c.name }}</div>
+                            <div class="item-subtitle">{{ c.issuer }}</div>
+                        </div>
+                        <div class="item-right">
+                            Nov' 24 <!-- Add 'date' field to your model -->
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+                <!-- SKILLS -->
+                {% if resume.skill_items.exists %}
+                <section class="section skills">
+                    <h2 class="section-title">Technical Skills</h2>
+                    <ul class="list skills-list">
+                         {% for s in resume.skill_items.all %}
+                            <pre style="font-size:0.9rem; font-family: 'Times New Roman', Times, serif; "><li> {{ s.category }}:   {{ s.name }}</li></pre>
+                        {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+
+                <!-- EDUCATION -->
+                {% if resume.education_items.exists %}
+                <section class="section education">
+                    <h2 class="section-title">Education</h2>
+                    {% for e in resume.education_items.all %}
+                    <div class="item-row">
+                        <div class="item-left">
+                            <div class="item-title">{{ e.institution }}</div>
+                            <div class="item-subtitle">{{ e.degree }}{% if e.field %}, {{ e.field }}{% endif %}</div>
+                        </div>
+                        <div class="item-right">
+                            2022 – 2026 <!-- Add 'date' field to your model -->
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+                
+            </main>
+        </div>
+    </div>
+{% endblock %}

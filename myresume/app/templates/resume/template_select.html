@@ -3,19 +3,23 @@
 {% block title %}Select a Template{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-xl">
-    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Select a Template</h1>
-    <p class="text-center text-gray-600 mb-8">Choose a professional template to view and export your resume.</p>
+<div class="max-w-6xl mx-auto p-8 bg-white rounded-lg shadow-xl feature-card group relative bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-indigo-400/50 transform hover:translate-y-[-8px] transition-all duration-500 flex flex-col items-center text-center space-y-4">
+    <div id="tpl-loader" class="hidden absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+        <div class="h-10 w-10 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
+    </div>
+
+    <h1 class="text-3xl font-bold text-center text-gray-100 mb-6">Select a Template</h1>
+    <p class="text-center text-gray-400 mb-8">Choose a professional template to view and export your resume.</p>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800">Professional Classic</h2>
-            <img src="https://placehold.co/400x500/E5E7EB/4B5563?text=Template+1" alt="Template 1 preview" class="rounded-lg shadow-md mb-4">
+            <img src="/static/images/temp1.png" alt="Template 1 preview" class="rounded-lg shadow-md mb-4">
             <div class="flex space-x-4">
-                <a href="{% url 'app:resume_detail' resume.pk 'template1' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                <a href="{% url 'app:resume_detail' resume.pk 'template1' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
                     View
                 </a>
-                <a href="{% url 'app:export_pdf' resume.pk 'template1' %}" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">
+                <a href="{% url 'app:export_pdf' resume.pk 'template1' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">
                     Download PDF
                 </a>
             </div>
@@ -23,16 +27,78 @@
         
         <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800">Modern Minimalist</h2>
-            <img src="https://placehold.co/400x500/E5E7EB/4B5563?text=Template+2" alt="Template 2 preview" class="rounded-lg shadow-md mb-4">
+            <img src="/static/images/temp2.png" alt="Template 2 preview" class="rounded-lg shadow-md mb-4">
             <div class="flex space-x-4">
-                <a href="{% url 'app:resume_detail' resume.pk 'template2' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                <a href="{% url 'app:resume_detail' resume.pk 'template2' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
                     View
                 </a>
-                <a href="{% url 'app:export_pdf' resume.pk 'template2' %}" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">
+                <a href="{% url 'app:export_pdf' resume.pk 'template2' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">
                     Download PDF
                 </a>
             </div>
         </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Graphic Designer</h2>
+            <img src="/static/images/graphicd.png" alt="Template 3 preview" class="rounded-lg shadow-md mb-4">
+            <div class="flex space-x-4">
+                <a href="{% url 'app:resume_detail' resume.pk 'template3' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</a>
+                <a href="{% url 'app:export_pdf' resume.pk 'template3' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">Download PDF</a>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6 ">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Marketing Specialist</h2>
+            <img src="/static/images/marketing.png" alt="Template 4 preview" class="rounded-lg shadow-md mb-4">
+            <div class="flex space-x-4">
+                <a href="{% url 'app:resume_detail' resume.pk 'template4' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</a>
+                <a href="{% url 'app:export_pdf' resume.pk 'template4' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">Download PDF</a>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Data Professional</h2>
+            <img src="/static/images/datas.png" alt="Template 5 preview" class="rounded-lg shadow-md mb-4">
+            <div class="flex space-x-4">
+                <a href="{% url 'app:resume_detail' resume.pk 'template5' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</a>
+                <a href="{% url 'app:export_pdf' resume.pk 'template5' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">Download PDF</a>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">DevOps/SRE</h2>
+            <img src="/static/images/template6.png" alt="Template 6 preview" class="rounded-lg shadow-md mb-4">
+            <div class="flex space-x-4">
+                <a href="{% url 'app:resume_detail' resume.pk 'template6' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</a>
+                <a href="{% url 'app:export_pdf' resume.pk 'template6' %}" onclick="document.getElementById('tpl-loader').classList.remove('hidden')" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">Download PDF</a>
+            </div>
+        </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Ensure the template loader is hidden when the page is loaded or restored
+    // from back/forward cache. This prevents the spinner from persisting
+    // after navigating away (download/view) and coming back.
+    function hideTplLoader() {
+        const l = document.getElementById('tpl-loader');
+        if (!l) return;
+        // prefer classList API; ensure 'hidden' is present
+        if (!l.classList.contains('hidden')) l.classList.add('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', hideTplLoader);
+    // pageshow fires when a page is restored from bfcache (back/forward nav)
+    window.addEventListener('pageshow', function (event) {
+        hideTplLoader();
+    });
+
+    // Also hide when visibility changes (covers some browsers/edge cases)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') hideTplLoader();
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,19 @@
+/* Template 5 - Modern card-style with dark header */
+@page { size: A4; margin: 10mm; }
+body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:#0f172a; background:#ffffff; }
+.max-w-4xl { max-width:900px; margin:0 auto; }
+.bg-white { background: #ffffff; }
+header.bg-slate-900 { background:#0f172a !important; }
+header h1 { color:#fff; margin:0; }
+header p { color:#cbd5e1; margin:0; }
+.p-8 { padding:20px; }
+.section-title { font-weight:700; color:#0f172a; margin-bottom:6px; border-bottom:2px solid #6366F1; padding-bottom:4px; }
+.prose { color:#0b1220; line-height:1.5; }
+.prose ul { padding-left:18px; }
+@media print { .max-w-4xl { box-shadow:none !important; border:0 !important; } }
+
+/* PDF / print helpers (template1-alike) */
+@page { size: A4; margin: 8mm; }
+html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+.max-w-4xl { box-sizing: border-box; padding: 8px; }
+@media print { .max-w-4xl { padding: 8px !important; } }

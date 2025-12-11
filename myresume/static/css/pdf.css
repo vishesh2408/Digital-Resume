@@ -1,0 +1,41 @@
+@page { size: A4; margin: 18mm; }
+html, body { margin: 0; padding: 0; }
+
+/* Constrain main container to fit within A4 printable width (avoid overflow to 2nd page) */
+.max-w-4xl { max-width: 720px !important; }
+
+/* Reduce large paddings for print to reclaim space */
+.p-10 { padding: 24px !important; }
+.pb-6 { padding-bottom: 12px !important; }
+.mb-8 { margin-bottom: 16px !important; }
+
+/* Images scale nicely within layout */
+img { max-width: 100%; height: auto; }
+
+/* Avoid breaking sections across pages */
+.prose, .section, h1, h2, h3, h4, p, ul, ol, li, table, thead, tbody, tr { 
+  break-inside: avoid; 
+  page-break-inside: avoid; 
+}
+
+/* Slightly smaller fonts for print if needed */
+.print\:text-2xl { font-size: 1.5rem !important; }
+.print\:text-base { font-size: 1rem !important; }
+
+/* Remove print-only spacing utilities if present */
+.print\:p-0 { padding: 0 !important; }
+.print\:mb-4 { margin-bottom: 12px !important; }
+
+/* Ensure transparent backgrounds render white in PDF */
+.bg-white { background-color: #ffffff !important; }
+
+/* Print-specific header layout: use table display so PDF renderers (WeasyPrint)
+  that have incomplete flex support produce consistent two-column headers. */
+.resume-header { display: table; width: 100%; border: none; padding: 0 0 12px 0; }
+.resume-header .resume-left, .resume-header .resume-right { display: table-cell; vertical-align: top; }
+.resume-header .resume-left { padding-right: 12px; }
+.resume-header .resume-right { width: 220px; text-align: right; }
+
+/* Ensure links render in black/blue readable color in PDF */
+.resume-header a { color: #0b3d91; text-decoration: none; }
+.resume-header a.underline { text-decoration: underline; }
