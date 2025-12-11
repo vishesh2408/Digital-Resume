@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Builder - {% block title %}Home{% endblock %}</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+
+<body class="h-full flex flex-col bg-teal-50">
+
+  <!-- Navbar -->
+  <nav class="bg-teal-500 shadow-sm p-4 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="{% url 'app:resume_list' %}" class="text-xl font-bold text-gray-800">Resume Builder</a>
+      <div class="space-x-4">
+        {% if user.is_authenticated %}
+          <span class="text-gray-600">Hello, {{ user.username }}!</span>
+          <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100 transition-colors">Login</a>
+          <a href="{% url 'app:signup' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">Sign Up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-grow p-8">
+    <div class="container mx-auto">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        <!-- Brand Info -->
+        <div class="lg:col-span-1">
+          <h2 class="text-2xl font-bold text-blue-400 mb-4">Resume Builder</h2>
+          <p class="text-gray-300 mb-4 leading-relaxed">
+            Your partner in crafting professional resumes and showcasing your skills with customizable templates and export options.
+          </p>
+          <div class="flex items-start text-gray-300">
+            <svg class="w-5 h-5 mr-2 mt-1 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1118 0z" />
+            </svg>
+            <p>Phagwara, Punjab, India</p>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Platform</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">About Us</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">Templates</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">Resume Tips</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">Preview</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Resources</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">Contact</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">Blog</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">FAQs</a></li>
+            <li><a href="#" class="text-gray-300 hover:text-blue-400 transition">Support</a></li>
+          </ul>
+        </div>
+
+        <!-- Social Links -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Connect</h3>
+          <div class="flex space-x-4">
+            {% for icon in social_icons %}
+              <a href="#" title="{{ icon|capfirst }}" class="bg-gray-800 hover:bg-blue-600 p-3 rounded-full transition">
+                <i class="fab fa-{{ icon }} text-white text-lg"></i>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+        <p class="text-gray-300 flex items-center justify-center">
+          &copy; {{ now.year }} Resume Builder. All Rights Reserved. Designed with
+          <svg class="w-4 h-4 mx-1 text-red-500 fill-current" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+                     4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 
+                     14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 
+                     6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

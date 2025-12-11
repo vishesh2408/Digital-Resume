@@ -1,0 +1,56 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Resume - {{ resume.full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-10 rounded-lg shadow-2xl border border-gray-100 print:shadow-none print:border-0 print:p-0">
+    <div class="flex items-center space-x-6 mb-8 border-b pb-6 border-gray-200 print:mb-4">
+        {% if resume.profile_image %}
+            <img src="{{ resume.profile_image.url }}" alt="{{ resume.full_name }}" class="w-24 h-24 rounded-full object-cover shadow-md print:w-16 print:h-16 print:rounded-none">
+        {% else %}
+            <div class="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl text-indigo-800 font-bold print:w-16 print:h-16 print:rounded-none print:bg-white print:text-indigo-600">
+                {{ resume.full_name|first }}
+            </div>
+        {% endif %}
+        <div>
+            <h1 class="text-4xl font-extrabold text-gray-900 print:text-2xl">{{ resume.full_name }}</h1>
+            <p class="text-lg text-gray-600 print:text-base">{{ resume.email }} | {{ resume.phone }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Sidebar -->
+        <div class="col-span-1 space-y-8">
+            <div class="prose max-w-none">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Summary</h2>
+                {{ resume.summary|safe }}
+            </div>
+            <div class="prose max-w-none">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Skills</h2>
+                {{ resume.skills|safe }}
+            </div>
+            <div class="prose max-w-none">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Certificates</h2>
+                {{ resume.certificates|safe }}
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-span-2 space-y-8">
+            <div class="prose max-w-none">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Projects</h2>
+                {{ resume.projects|safe }}
+            </div>
+            <div class="prose max-w-none">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Education</h2>
+                {{ resume.education|safe }}
+            </div>
+            <div class="prose max-w-none">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 border-b-2 border-indigo-500 pb-1">Training</h2>
+                {{ resume.training|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

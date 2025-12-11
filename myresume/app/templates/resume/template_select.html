@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Select a Template{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-xl">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Select a Template</h1>
+    <p class="text-center text-gray-600 mb-8">Choose a professional template to view and export your resume.</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Professional Classic</h2>
+            <img src="https://placehold.co/400x500/E5E7EB/4B5563?text=Template+1" alt="Template 1 preview" class="rounded-lg shadow-md mb-4">
+            <div class="flex space-x-4">
+                <a href="{% url 'app:resume_detail' resume.pk 'template1' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                    View
+                </a>
+                <a href="{% url 'app:export_pdf' resume.pk 'template1' %}" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">
+                    Download PDF
+                </a>
+            </div>
+        </div>
+        
+        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-inner overflow-hidden flex flex-col items-center p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Modern Minimalist</h2>
+            <img src="https://placehold.co/400x500/E5E7EB/4B5563?text=Template+2" alt="Template 2 preview" class="rounded-lg shadow-md mb-4">
+            <div class="flex space-x-4">
+                <a href="{% url 'app:resume_detail' resume.pk 'template2' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                    View
+                </a>
+                <a href="{% url 'app:export_pdf' resume.pk 'template2' %}" class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors">
+                    Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
